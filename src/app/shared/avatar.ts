@@ -32,14 +32,14 @@ const PELOS: Record<ColorPelo, string> = {
 
 /** Descripciones del vestuario (noviembre 2026). */
 const RASGOS: Record<string, Rasgos> = {
-  'pascual-adrian': { piel: 'blanco', peinado: 'flequillo', pelo: 'castano' },
-  'pascual-hector': { piel: 'blanco', peinado: 'flequillo', pelo: 'castano' }, // gemelo de Adri
+  'pascual-adrian': { piel: 'blanco', peinado: 'flequillo', pelo: 'moreno' },
+  'pascual-hector': { piel: 'blanco', peinado: 'flequillo', pelo: 'moreno' }, // gemelo de Adri
   'lopez-corona-alejandro': { piel: 'blanco', peinado: 'corto', pelo: 'rubio' },
   'velasco-sanchez-alvaro': { piel: 'clarito', peinado: 'tupe', pelo: 'moreno' },
   'gomez-batanero-daniel': { piel: 'blanco', peinado: 'poco', pelo: 'platino' },
   'jimenez-duque-bruno': { piel: 'blanco', peinado: 'tupe', pelo: 'moreno' },
   'lozano-fresno-javier': { piel: 'blanco', peinado: 'raya', pelo: 'rubio' },
-  'sava-claudiu': { piel: 'blanco', peinado: 'raya', pelo: 'moreno', barba: 'barba' },
+  'sava-claudiu': { piel: 'blanco', peinado: 'corto', pelo: 'moreno', barba: 'barba' },
   'navarro-cedillo-david': { piel: 'blanco', peinado: 'corto', pelo: 'moreno' },
   'sanchez-martin-diego': { piel: 'tostado', peinado: 'pinchos', pelo: 'moreno' },
   'elissaoui-hicham': { piel: 'marroqui', peinado: 'poco', pelo: 'negro' },
@@ -49,9 +49,9 @@ const RASGOS: Record<string, Rasgos> = {
   'garcia-farraces-jorge': { piel: 'blanco', peinado: 'pinchos', pelo: 'moreno' },
   'reneo-jose-manuel': { piel: 'blanco', peinado: 'tupe', pelo: 'moreno' },
   'parrilla-daniel': { piel: 'blanco', peinado: 'flequillo', pelo: 'negro' },
-  'pasero-ignacio': { piel: 'tostado', peinado: 'corto', pelo: 'moreno', barba: 'barba' },
+  'pasero-ignacio': { piel: 'blanco', peinado: 'corto', pelo: 'moreno', barba: 'barba' },
   'fernandez-zubillaga-diego': { piel: 'blanco', peinado: 'rizado', pelo: 'pelirrojo', pecas: true },
-  'diaz-nunez-rodrigo': { piel: 'blanco', peinado: 'raya', pelo: 'negro' },
+  'diaz-nunez-rodrigo': { piel: 'blanco', peinado: 'corto', pelo: 'moreno' },
   'el-moussaqui-samir': { piel: 'marroqui', peinado: 'corto', pelo: 'negro' },
   'vazquez-sergio': { piel: 'blanco', peinado: 'tupe', pelo: 'negro' },
   'fquihi-soufian': { piel: 'marroqui', peinado: 'pinchos', pelo: 'negro', barba: 'perilla' },
