@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Escudo CD Villamanta simplificado para verse nítido a 16-32 px -->
+  <path d="M12 14 Q12 12 14 12 H50 Q52 12 52 14 V36 C52 49 43 57 32 62 C21 57 12 49 12 36 Z" fill="#ffd400" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M19.5 19.5 L44.5 45 M44.5 19.5 L19.5 45" stroke="#111" stroke-width="6.5" stroke-linecap="square"/>
+  <circle cx="32" cy="9.5" r="7.5" fill="#8a4a22" stroke="#111" stroke-width="2.5"/>
+  <path d="M25.5 9 Q32 5.8 38.5 9 M32 2.5 V16.5" fill="none" stroke="#111" stroke-width="1.4" opacity=".55"/>
+</svg>
