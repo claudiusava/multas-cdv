@@ -282,3 +282,4 @@ h2, h3, p { margin: 0; }
 .contenido .qe-op { box-shadow: var(--sombra); border-width: 2px; }
 .multa > app-avatar { align-self: flex-start; }
 .qe-demo { max-width: 460px; margin: 0 auto 12px; padding: 6px 12px; border-radius: 10px; background: var(--negro); color: var(--amarillo); text-align: center; font-size: .85rem; font-weight: 700; }
+.multa .guardando { color: var(--aviso); font-weight: 700; }

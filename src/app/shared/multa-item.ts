@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { infraccion, jugador } from '../core/catalogo';
 import { cuentaAtras, euros, Multa, msRestantes, vencimiento } from '../core/multas';
 import { Store } from '../core/store';
@@ -26,6 +26,7 @@ import { Avatar } from './avatar';
         }
         <div class="meta">
           <span>{{ fecha(m.fecha) }} · por {{ m.creadaPor }}</span>
+          @if (guardando()) { <span class="guardando">· guardando…</span> }
         </div>
         <div class="estado">
           @switch (estado()) {
@@ -49,15 +50,15 @@ import { Avatar } from './avatar';
         @if (store.esAdmin() && m.importe > 0) {
           <div class="acciones">
             @if (!m.pagada) {
-              <button class="btn btn-ok" (click)="pagar(true)" [disabled]="ocupado()">💶 Cobrada</button>
+              <button class="btn btn-ok" (click)="pagar(true)" [disabled]="guardando()">💶 Cobrada</button>
             } @else {
-              <button class="btn btn-ghost" (click)="pagar(false)" [disabled]="ocupado()">Deshacer pago</button>
+              <button class="btn btn-ghost" (click)="pagar(false)" [disabled]="guardando()">Deshacer pago</button>
             }
-            <button class="btn btn-ghost peligro" (click)="borrar()" [disabled]="ocupado()">Borrar</button>
+            <button class="btn btn-ghost peligro" (click)="borrar()" [disabled]="guardando()">Borrar</button>
           </div>
         } @else if (store.esAdmin()) {
           <div class="acciones">
-            <button class="btn btn-ghost peligro" (click)="borrar()" [disabled]="ocupado()">Borrar</button>
+            <button class="btn btn-ghost peligro" (click)="borrar()" [disabled]="guardando()">Borrar</button>
           </div>
         }
       </div>
@@ -69,7 +70,8 @@ export class MultaItem {
   readonly multa = input.required<Multa>();
 
   protected readonly euros = euros;
-  protected readonly ocupado = signal(false);
+  /** Recién creada: aún sin id del servidor. */
+  protected readonly guardando = computed(() => this.multa().id.startsWith('tmp-'));
   protected readonly j = computed(() => jugador(this.multa().jugadorId));
   protected readonly extra = computed(() => infraccion(this.multa().infraccionId)?.extra);
   protected readonly limite = computed(() => vencimiento(this.multa()).toISOString());
@@ -90,29 +92,16 @@ export class MultaItem {
     return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
 
-  protected async pagar(pagada: boolean): Promise<void> {
-    this.ocupado.set(true);
-    try {
-      await this.store.marcarPagada(this.multa(), pagada);
-      this.store.avisar(pagada ? `💶 ${euros(this.multa().importe)} al bote. ¡Gracias ${this.j().apodo}!` : 'Pago deshecho');
-    } catch (e) {
-      this.store.avisar((e as Error).message);
-    } finally {
-      this.ocupado.set(false);
-    }
+  protected pagar(pagada: boolean): void {
+    const m = this.multa();
+    const apodo = this.j().apodo;
+    this.store.marcarPagada(m, pagada).then((ok) => ok && pagada && this.store.avisar(`💶 ${euros(m.importe)} al bote. ¡Gracias ${apodo}!`));
+    if (!pagada) this.store.avisar('Pago deshecho');
   }
 
-  protected async borrar(): Promise<void> {
+  protected borrar(): void {
     const m = this.multa();
     if (!confirm(`¿Borrar la multa de ${this.j().apodo} (${m.concepto})? No se puede deshacer.`)) return;
-    this.ocupado.set(true);
-    try {
-      await this.store.borrar(m);
-      this.store.avisar('Multa borrada');
-    } catch (e) {
-      this.store.avisar((e as Error).message);
-    } finally {
-      this.ocupado.set(false);
-    }
+    this.store.borrar(m).then((ok) => ok && this.store.avisar('Multa borrada'));
   }
 }

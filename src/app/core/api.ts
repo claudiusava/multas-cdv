@@ -50,13 +50,16 @@ export class Api {
   readonly demo = esDemo();
 
   async datos(): Promise<Datos> {
-    if (this.demo) return demoDatos();
+    if (this.demo) return espera(demoDatos());
     const res = await fetch(`${API_URL}?t=${Date.now()}`, { redirect: 'follow' });
     return this.leer<Datos>(res);
   }
 
   async enviar<T = Record<string, unknown>>(body: Accion): Promise<T> {
-    if (this.demo) return demoEnviar(body) as T;
+    if (this.demo) {
+      const r = demoEnviar(body);
+      return espera({ ...r, datos: demoDatos() } as T);
+    }
     const res = await fetch(API_URL, {
       method: 'POST',
       redirect: 'follow',
@@ -79,6 +82,12 @@ export class Api {
 }
 
 // ---------------- modo demo ----------------
+
+/** Simula la latencia del servidor real (≈1,5 s) para que el demo se comporte igual. */
+function espera<T>(valor: T): Promise<T> {
+  const ms = Number(sessionStorage.getItem('cdv.demo.latencia') ?? 0);
+  return new Promise((r) => setTimeout(() => r(valor), ms));
+}
 
 const DEMO_KEY = 'cdv.demo.datos.v2';
 

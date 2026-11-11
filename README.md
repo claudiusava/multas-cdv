@@ -15,6 +15,7 @@ App móvil para llevar las multas del régimen interno 2026/27 del **CD Villaman
   y cuando están los cuatro ocupados la pantalla ya no aparece a nadie.
   - Cambiar de móvil: borra tu fila en la pestaña `Responsables` y entra en `#/acceso`.
   - Lista de responsables: `RESPONSABLES` en `apps-script/Code.js`.
+- El servidor cachea los datos 5 min: lo que edites a mano en la hoja puede tardar hasta 5 min en verse (lo que se hace desde la app es inmediato).
 
 ## Desarrollo
 

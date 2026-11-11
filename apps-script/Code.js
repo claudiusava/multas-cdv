@@ -16,6 +16,9 @@ const MULTAS_HEADERS = [
   'nota', 'creadaPor', 'pagada', 'fechaPago', 'cobradaPor',
 ];
 const ADMINS_HEADERS = ['nombre', 'rol', 'tokenHash', 'fechaAlta', 'dispositivo'];
+const ZONA = 'Europe/Madrid';
+const CACHE_KEY = 'datos-v2';
+const CACHE_SEG = 300; // ediciones manuales en la hoja se ven en ≤ 5 min
 
 /** Ejecútalo una vez desde el editor para crear las pestañas y el código. */
 function setup() {
@@ -29,7 +32,11 @@ function setup() {
 
 function doGet(e) {
   try {
-    return json_({ ok: true, ...readAll_() });
+    ensureFormato_();
+    const cache = CacheService.getScriptCache();
+    const hit = cache.get(CACHE_KEY);
+    if (hit) return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
+    return json_({ ok: true, ...readFresh_() });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
   }
@@ -41,7 +48,10 @@ function doPost(e) {
     lock.waitLock(20000);
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const result = handle_(body);
-    return json_({ ok: true, ...result });
+    const cambia = ['add', 'pay', 'unpay', 'delete', 'register', 'logout'].indexOf(body.action) >= 0;
+    if (!cambia) return json_({ ok: true, ...result });
+    // Devuelve los datos actualizados en la misma respuesta: el móvil no necesita otra llamada.
+    return json_({ ok: true, ...result, datos: readFresh_() });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
   } finally {
@@ -64,6 +74,46 @@ function handle_(body) {
 
 // ---------- lectura ----------
 
+/** Lee la hoja y deja el resultado en caché para las siguientes visitas. */
+function readFresh_() {
+  const datos = readAll_();
+  try {
+    CacheService.getScriptCache().put(CACHE_KEY, JSON.stringify({ ok: true, ...datos }), CACHE_SEG);
+  } catch (_) { /* > 100 KB: sin caché */ }
+  return datos;
+}
+
+/**
+ * Una vez: las fechas pasan a texto ISO (no dependen de zonas horarias) y la
+ * hoja se pone en hora de Madrid. Las fechas antiguas se guardaron como celdas
+ * de fecha en una hoja con hora de Los Ángeles y se leían desplazadas; se corrigen.
+ */
+function ensureFormato_() {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty('formatoV2')) return;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const zonaHoja = ss.getSpreadsheetTimeZone();
+  const sh = ss.getSheetByName(SHEET_MULTAS);
+  const fmt = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+  ['fecha', 'fechaPago'].forEach(h => {
+    const col = MULTAS_HEADERS.indexOf(h) + 1;
+    const n = sh.getLastRow() - 1;
+    if (n > 0) {
+      const rango = sh.getRange(2, col, n, 1);
+      const vals = rango.getValues().map(([v]) => {
+        if (!(v instanceof Date)) return [v];
+        const real = Utilities.parseDate(Utilities.formatDate(v, 'UTC', fmt), zonaHoja, fmt);
+        return [real.toISOString()];
+      });
+      rango.setNumberFormat('@').setValues(vals);
+    }
+    sh.getRange(2, col, sh.getMaxRows() - 1, 1).setNumberFormat('@');
+  });
+  if (zonaHoja !== ZONA) ss.setSpreadsheetTimeZone(ZONA);
+  props.setProperty('formatoV2', '1');
+  CacheService.getScriptCache().remove(CACHE_KEY);
+}
+
 function readAll_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const multas = rows_(ss.getSheetByName(SHEET_MULTAS)).map(r => ({
@@ -85,7 +135,7 @@ function readAll_() {
   }));
   const ocupados = responsables.map(r => r.nombre);
   const libres = Object.keys(RESPONSABLES).filter(n => ocupados.indexOf(n) < 0);
-  return { multas, responsables, libres, plazas: MAX_ADMINS };
+  return { multas, responsables, libres, plazas: MAX_ADMINS, zona: ss.getSpreadsheetTimeZone() };
 }
 
 // ---------- responsables ----------
@@ -126,9 +176,10 @@ function addMulta_(admin, b) {
   const importe = Math.round(Number(b.importe) * 100) / 100;
   if (!b.jugadorId || !b.concepto) throw new Error('Faltan datos');
   if (!(importe >= 0) || importe > 500) throw new Error('Importe no válido');
+  ensureFormato_();
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
   const id = Utilities.getUuid();
-  const fecha = new Date();
+  const fecha = new Date().toISOString();
   sheet.appendRow([
     id, fecha, String(b.jugadorId), String(b.jugador || ''), String(b.infraccionId || 'otra'),
     String(b.concepto).slice(0, 160), importe, String(b.nota || '').slice(0, 300),
@@ -141,8 +192,9 @@ function setPaid_(admin, id, paid) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
   const row = findRowIndex_(sheet, 'id', String(id));
   if (row < 0) throw new Error('Multa no encontrada');
+  ensureFormato_();
   const col = MULTAS_HEADERS.indexOf('pagada') + 1;
-  sheet.getRange(row, col, 1, 3).setValues([[paid, paid ? new Date() : '', paid ? admin.nombre : '']]);
+  sheet.getRange(row, col, 1, 3).setValues([[paid, paid ? new Date().toISOString() : '', paid ? admin.nombre : '']]);
   return {};
 }
 

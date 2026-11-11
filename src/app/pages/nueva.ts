@@ -145,7 +145,7 @@ export class NuevaPage {
     return true;
   }
 
-  protected async guardar(): Promise<void> {
+  protected guardar(): void {
     const i = this.inf();
     const j = this.j();
     if (!i || !j || !this.valida()) return;
@@ -155,15 +155,10 @@ export class NuevaPage {
       : i.porUnidad && this.unidades() > 1
         ? `${i.concepto} (×${this.unidades()} ${i.porUnidad}s)`
         : i.concepto;
-    this.guardando.set(true);
-    try {
-      await this.store.nuevaMulta({ jugadorId: j.id, jugador: j.apodo, infraccionId: i.id, concepto, importe, nota: this.nota.trim() });
-      this.store.avisar(importe > 0 ? `✅ ${j.apodo} debe ${euros(importe)}` : `✅ Sanción registrada a ${j.apodo}`);
-      this.router.navigate(['/multas'], { queryParams: { v: 'pendientes' } });
-    } catch (e) {
-      this.store.avisar((e as Error).message);
-    } finally {
-      this.guardando.set(false);
-    }
+    const j2 = j;
+    this.store.nuevaMulta({ jugadorId: j.id, jugador: j.apodo, infraccionId: i.id, concepto, importe, nota: this.nota.trim() }).then(
+      (ok) => ok && this.store.avisar(importe > 0 ? `✅ ${j2.apodo} debe ${euros(importe)}` : `✅ Sanción registrada a ${j2.apodo}`),
+    );
+    this.router.navigate(['/multas']);
   }
 }
