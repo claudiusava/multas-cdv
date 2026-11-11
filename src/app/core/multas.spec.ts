@@ -54,5 +54,6 @@ describe('multas', () => {
     expect(r[1].posicion).toBe(2);
     expect(r[2].posicion).toBe(2);
     expect(r[3].total).toBe(0);
+    expect(r.at(-1)!.jugador.id).toBe('gabi');
   });
 });

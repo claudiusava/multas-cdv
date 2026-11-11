@@ -115,7 +115,12 @@ export function calcularRanking(multas: Multa[], ahora: number, jugadores = JUGA
     if (estaVencida(m, ahora)) f.vencidas++;
   }
   const lista = [...filas.values()].sort(
-    (a, b) => b.total - a.total || b.numMultas - a.numMultas || a.jugador.apodo.localeCompare(b.jugador.apodo, 'es'),
+    (a, b) =>
+      b.total - a.total ||
+      b.numMultas - a.numMultas ||
+      // A igualdad, el entrenador va detrás de los jugadores.
+      Number(a.jugador.id === 'gabi') - Number(b.jugador.id === 'gabi') ||
+      a.jugador.apodo.localeCompare(b.jugador.apodo, 'es'),
   );
   let pos = 0;
   let prev: FilaRanking | null = null;
