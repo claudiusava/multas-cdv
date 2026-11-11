@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { euros } from '../core/multas';
 import { Store } from '../core/store';
 import { Avatar } from '../shared/avatar';
@@ -7,7 +6,7 @@ import { Bote } from '../shared/bote';
 
 @Component({
   selector: 'app-ranking',
-  imports: [Avatar, RouterLink, Bote],
+  imports: [Avatar, Bote],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-bote />
@@ -16,13 +15,16 @@ import { Bote } from '../shared/bote';
     @if (podio().length) {
       <div class="podio">
         @for (f of podio(); track f.jugador.id) {
-          <a class="escalon e{{ f.posicion }}" [routerLink]="['/jugador', f.jugador.id]">
+          <div class="escalon e{{ f.posicion }}">
             <span class="corona">{{ ['🥇', '🥈', '🥉'][f.posicion - 1] }}</span>
             <app-avatar [jugador]="f.jugador" [size]="f.posicion === 1 ? 72 : 56" />
             <strong>{{ f.jugador.apodo }}</strong>
             <span class="cifra">{{ euros(f.total) }}</span>
+            <small class="podio-debe" [class.mal]="f.pendiente > 0">
+              {{ f.pendiente > 0 ? 'debe ' + euros(f.pendiente) : 'al día ✓' }}
+            </small>
             <span class="peana">{{ f.posicion }}</span>
-          </a>
+          </div>
         }
       </div>
     } @else if (store.cargadoUnaVez()) {
@@ -31,24 +33,26 @@ import { Bote } from '../shared/bote';
 
     <ol class="lista-ranking">
       @for (f of resto(); track f.jugador.id) {
-        <li>
-          <a [routerLink]="['/jugador', f.jugador.id]" [class.limpio]="f.total === 0">
-            <span class="pos">{{ f.posicion }}</span>
-            <app-avatar [jugador]="f.jugador" [size]="38" />
-            <span class="nombre">
-              <strong>{{ f.jugador.apodo }}</strong>
-              <small>
-                @if (f.numMultas) {
-                  {{ f.numMultas }} multa{{ f.numMultas === 1 ? '' : 's' }}
-                  @if (f.pendiente > 0) { · debe {{ euros(f.pendiente) }} }
+        <li [class.limpio]="f.total === 0">
+          <span class="pos">{{ f.posicion }}</span>
+          <app-avatar [jugador]="f.jugador" [size]="38" />
+          <span class="nombre">
+            <strong>{{ f.jugador.apodo }}</strong>
+            <small>
+              @if (f.numMultas) {
+                {{ f.numMultas }} multa{{ f.numMultas === 1 ? '' : 's' }}
+                @if (f.pendiente > 0) {
+                  · <b class="debe" [class.mal]="f.vencidas > 0">debe {{ euros(f.pendiente) }}</b>
                 } @else {
-                  Limpio 😇
+                  · al día ✓
                 }
-              </small>
-            </span>
-            @if (f.vencidas) { <span class="chip mal mini">⏰ {{ f.vencidas }}</span> }
-            <span class="cifra">{{ euros(f.total) }}</span>
-          </a>
+              } @else {
+                Sin multas 😇
+              }
+            </small>
+          </span>
+          @if (f.vencidas) { <span class="chip mal mini">⏰ {{ f.vencidas }}</span> }
+          <span class="cifra">{{ euros(f.total) }}</span>
         </li>
       }
     </ol>

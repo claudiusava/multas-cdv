@@ -10,6 +10,16 @@ export interface Admin {
 
 const ADMIN_KEY = esDemo() ? 'cdv.demo.admin' : 'cdv.admin';
 
+const VISTO_KEY = esDemo() ? 'cdv.demo.visto' : 'cdv.visto';
+
+function leerVisto(): boolean {
+  try {
+    return localStorage.getItem(VISTO_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 function leerAdmin(): Admin | null {
   try {
     return JSON.parse(localStorage.getItem(ADMIN_KEY) || 'null');
@@ -26,6 +36,9 @@ export class Store {
   readonly multas = signal<Multa[]>([]);
   readonly responsables = signal<Responsable[]>([]);
   readonly plazas = signal(4);
+  readonly libres = signal<string[]>([]);
+  /** Este móvil ya pasó por la pantalla "¿Quién eres?". */
+  readonly visto = signal(leerVisto());
   readonly cargando = signal(true);
   readonly cargadoUnaVez = signal(false);
   readonly error = signal<string | null>(null);
@@ -64,6 +77,7 @@ export class Store {
       this.multas.set(d.multas);
       this.responsables.set(d.responsables);
       this.plazas.set(d.plazas);
+      this.libres.set(d.libres ?? []);
       this.error.set(null);
       this.cargadoUnaVez.set(true);
     } catch (e) {
@@ -84,15 +98,14 @@ export class Store {
     }
   }
 
-  async registrar(code: string, nombre: string, rol: string): Promise<void> {
+  async registrar(nombre: string): Promise<void> {
     const r = await this.api.enviar<{ token: string; admin: { nombre: string; rol: string } }>({
       action: 'register',
-      code,
       nombre,
-      rol,
       dispositivo: navigator.userAgent,
     });
     this.guardarAdmin({ token: r.token, ...r.admin });
+    this.marcarVisto();
     this.avisar(`¡Hola ${r.admin.nombre}! Ya puedes poner multas desde este móvil.`);
     await this.cargar(true);
   }
@@ -125,6 +138,15 @@ export class Store {
   async borrar(m: Multa): Promise<void> {
     await this.api.enviar({ action: 'delete', token: this.token(), id: m.id });
     await this.cargar(true);
+  }
+
+  marcarVisto(): void {
+    this.visto.set(true);
+    try {
+      localStorage.setItem(VISTO_KEY, '1');
+    } catch {
+      /* almacenamiento no disponible */
+    }
   }
 
   avisar(texto: string): void {

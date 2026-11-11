@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { infraccion, jugador } from '../core/catalogo';
 import { cuentaAtras, euros, Multa, msRestantes, vencimiento } from '../core/multas';
 import { Store } from '../core/store';
@@ -7,17 +6,15 @@ import { Avatar } from './avatar';
 
 @Component({
   selector: 'app-multa-item',
-  imports: [Avatar, RouterLink],
+  imports: [Avatar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let m = multa();
-    <article class="multa" [class.pagada]="m.pagada" [class.vencida]="estado() === 'vencida'">
-      <a class="quien" [routerLink]="['/jugador', m.jugadorId]">
-        <app-avatar [jugador]="j()" [size]="42" />
-      </a>
+    <article class="multa {{ estado() }}">
+      <app-avatar [jugador]="j()" [size]="42" />
       <div class="cuerpo">
         <div class="linea1">
-          <a class="apodo" [routerLink]="['/jugador', m.jugadorId]">{{ j().apodo }}</a>
+          <span class="apodo">{{ j().apodo }}</span>
           <span class="importe">{{ m.importe > 0 ? euros(m.importe) : 'Sanción' }}</span>
         </div>
         <div class="concepto">{{ m.concepto }}</div>

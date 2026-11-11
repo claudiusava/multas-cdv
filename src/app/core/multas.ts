@@ -68,6 +68,22 @@ export function porFechaDesc(a: Multa, b: Multa): number {
   return new Date(b.fecha).getTime() - new Date(a.fecha).getTime();
 }
 
+/**
+ * Listado único: primero las no pagadas por fecha límite (vencidas arriba,
+ * luego la que menos tiempo le queda), después sanciones sin importe y al
+ * final las pagadas (más recientes primero).
+ */
+export function ordenarListado(multas: Multa[]): Multa[] {
+  const grupo = (m: Multa) => (m.pagada ? 2 : m.importe === 0 ? 1 : 0);
+  return [...multas].sort((a, b) => {
+    const g = grupo(a) - grupo(b);
+    if (g) return g;
+    if (grupo(a) === 0) return new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+    if (grupo(a) === 2) return new Date(b.fechaPago ?? b.fecha).getTime() - new Date(a.fechaPago ?? a.fecha).getTime();
+    return porFechaDesc(a, b);
+  });
+}
+
 export function calcularBote(multas: Multa[], ahora: number): Bote {
   let recaudado = 0;
   let pendiente = 0;

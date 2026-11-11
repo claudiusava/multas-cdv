@@ -1,4 +1,4 @@
-import { calcularBote, calcularRanking, cuentaAtras, estaVencida, Multa } from './multas';
+import { calcularBote, calcularRanking, cuentaAtras, estaVencida, Multa, ordenarListado } from './multas';
 
 const DIA = 86_400_000;
 const ahora = Date.parse('2026-11-20T12:00:00Z');
@@ -35,6 +35,14 @@ describe('multas', () => {
   it('calcula el bote', () => {
     const b = calcularBote([multa({ importe: 5, pagada: true }), multa({ importe: 4 }), multa({ importe: 2 })], ahora);
     expect(b).toEqual({ recaudado: 5, pendiente: 6, total: 11, numPendientes: 2, numVencidas: 0 });
+  });
+
+  it('ordena el listado: vencidas, luego menos plazo, pagadas al final', () => {
+    const pagada = multa({ id: 'p', pagada: true, fecha: new Date(ahora - 20 * DIA).toISOString() });
+    const nueva = multa({ id: 'n', fecha: new Date(ahora - 1 * DIA).toISOString() });
+    const vencida = multa({ id: 'v', fecha: new Date(ahora - 12 * DIA).toISOString() });
+    const casi = multa({ id: 'c', fecha: new Date(ahora - 8 * DIA).toISOString() });
+    expect(ordenarListado([pagada, nueva, casi, vencida]).map((m) => m.id)).toEqual(['v', 'c', 'n', 'p']);
   });
 
   it('ordena el ranking por total y comparte posición en empates', () => {

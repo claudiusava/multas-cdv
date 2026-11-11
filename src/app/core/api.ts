@@ -9,6 +9,8 @@ export const API_URL =
 export interface Datos {
   multas: Multa[];
   responsables: Responsable[];
+  /** Nombres de responsable aún sin móvil autorizado. */
+  libres: string[];
   plazas: number;
 }
 
@@ -22,7 +24,7 @@ export interface NuevaMulta {
 }
 
 type Accion =
-  | { action: 'register'; code: string; nombre: string; rol: string; dispositivo: string }
+  | { action: 'register'; nombre: string; dispositivo: string }
   | { action: 'whoami'; token: string }
   | ({ action: 'add'; token: string } & NuevaMulta)
   | { action: 'pay' | 'unpay' | 'delete'; token: string; id: string }
@@ -74,7 +76,7 @@ export class Api {
 
 // ---------------- modo demo ----------------
 
-const DEMO_KEY = 'cdv.demo.datos';
+const DEMO_KEY = 'cdv.demo.datos.v2';
 
 function demoDatos(): Datos {
   const raw = localStorage.getItem(DEMO_KEY);
@@ -103,7 +105,8 @@ function demoDatos(): Datos {
       mk(5, 'reneo-jose-manuel', 'ent-tarde', 'Llegar tarde al entreno', 2, 6, true),
       mk(6, 'el-moussaqui-samir', 'par-vestimenta', 'No acudir con la vestimenta estipulada (×2 prendas)', 4, 0.2),
     ],
-    responsables: [{ nombre: 'Clau', rol: 'Capitán' }],
+    responsables: [],
+    libres: ['Clau', 'David', 'Sergio', 'Gabi'],
     plazas: 4,
   };
   localStorage.setItem(DEMO_KEY, JSON.stringify(datos));
@@ -120,11 +123,12 @@ function demoEnviar(b: Accion): Record<string, unknown> {
   };
   switch (b.action) {
     case 'register': {
-      if (b.code.trim().toUpperCase() !== 'CDV-DEMO') throw new Error('Código incorrecto (en demo es CDV-DEMO)');
-      datos.responsables = datos.responsables.filter((r) => r.nombre !== b.nombre);
-      datos.responsables.push({ nombre: b.nombre, rol: b.rol });
+      if (!datos.libres.includes(b.nombre)) throw new Error(b.nombre + ' ya tiene un móvil autorizado');
+      const rol = b.nombre === 'Gabi' ? 'Entrenador' : 'Capitán';
+      datos.responsables.push({ nombre: b.nombre, rol });
+      datos.libres = datos.libres.filter((n) => n !== b.nombre);
       guardar();
-      return { token: 'demo', admin: { nombre: b.nombre, rol: b.rol } };
+      return { token: 'demo', admin: { nombre: b.nombre, rol } };
     }
     case 'whoami':
       return { admin: { nombre: yo() } };

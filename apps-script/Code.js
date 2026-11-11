@@ -1,15 +1,16 @@
 /**
  * Multas CDV — backend en Google Apps Script sobre una hoja de cálculo.
  *
- * Lectura pública (GET). Escritura (POST) sólo con un token de dispositivo
- * que se obtiene canjeando el código de invitación (pestaña "Config").
- * Máximo 4 responsables (3 capitanes + entrenador).
+ * Lectura pública (GET). Escritura (POST) sólo con un token de dispositivo.
+ * Cada responsable (Clau, David, Sergio, Gabi) reclama su plaza una sola vez
+ * desde su móvil; una vez ocupada, nadie más puede usar ese nombre.
  */
 
-const MAX_ADMINS = 4;
+/** Únicos responsables posibles (3 capitanes + entrenador). Un móvil por persona. */
+const RESPONSABLES = { Clau: 'Capitán', David: 'Capitán', Sergio: 'Capitán', Gabi: 'Entrenador' };
+const MAX_ADMINS = Object.keys(RESPONSABLES).length;
 const SHEET_MULTAS = 'Multas';
 const SHEET_ADMINS = 'Responsables';
-const SHEET_CONFIG = 'Config';
 const MULTAS_HEADERS = [
   'id', 'fecha', 'jugadorId', 'jugador', 'infraccionId', 'concepto', 'importe',
   'nota', 'creadaPor', 'pagada', 'fechaPago', 'cobradaPor',
@@ -21,14 +22,9 @@ function setup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ensureSheet_(ss, SHEET_MULTAS, MULTAS_HEADERS);
   ensureSheet_(ss, SHEET_ADMINS, ADMINS_HEADERS);
-  const config = ensureSheet_(ss, SHEET_CONFIG, ['clave', 'valor']);
-  if (!getInviteCode_()) {
-    const code = 'CDV-' + Math.floor(1000 + Math.random() * 9000);
-    config.appendRow(['codigoInvitacion', code]);
-  }
   const def = ss.getSheetByName('Hoja 1') || ss.getSheetByName('Sheet1');
   if (def && ss.getSheets().length > 1) ss.deleteSheet(def);
-  Logger.log('Listo. Código de invitación: ' + getInviteCode_());
+  Logger.log('Listo.');
 }
 
 function doGet(e) {
@@ -87,26 +83,22 @@ function readAll_() {
     nombre: String(r.nombre),
     rol: String(r.rol),
   }));
-  return { multas, responsables, plazas: MAX_ADMINS };
+  const ocupados = responsables.map(r => r.nombre);
+  const libres = Object.keys(RESPONSABLES).filter(n => ocupados.indexOf(n) < 0);
+  return { multas, responsables, libres, plazas: MAX_ADMINS };
 }
 
 // ---------- responsables ----------
 
 function register_(body) {
-  const code = String(body.code || '').trim().toUpperCase();
-  const nombre = String(body.nombre || '').trim().slice(0, 40);
-  const rol = body.rol === 'Entrenador' ? 'Entrenador' : 'Capitán';
-  if (!nombre) throw new Error('Falta el nombre');
-  if (!code || code !== String(getInviteCode_()).toUpperCase()) {
-    Utilities.sleep(1500);
-    throw new Error('Código incorrecto');
-  }
+  const nombre = String(body.nombre || '').trim();
+  const rol = RESPONSABLES[nombre];
+  if (!rol) throw new Error('Solo pueden darse de alta ' + Object.keys(RESPONSABLES).join(', '));
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ADMINS);
   const admins = rows_(sheet);
-  if (admins.some(a => String(a.nombre).toLowerCase() === nombre.toLowerCase())) {
-    throw new Error(nombre + ' ya está dado de alta. Si cambiaste de móvil, pide que te liberen la plaza en la hoja.');
+  if (admins.some(a => String(a.nombre) === nombre)) {
+    throw new Error(nombre + ' ya tiene un móvil autorizado. Si has cambiado de móvil, borra tu fila en la pestaña Responsables de la hoja.');
   }
-  if (admins.length >= MAX_ADMINS) throw new Error('Ya hay ' + MAX_ADMINS + ' responsables dados de alta');
   const token = Utilities.getUuid() + Utilities.getUuid();
   sheet.appendRow([nombre, rol, hash_(token), new Date(), String(body.dispositivo || '').slice(0, 120)]);
   return { token, admin: { nombre, rol } };
@@ -163,13 +155,6 @@ function deleteMulta_(admin, id) {
 }
 
 // ---------- utilidades ----------
-
-function getInviteCode_() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_CONFIG);
-  if (!sheet) return '';
-  const r = rows_(sheet).find(x => x.clave === 'codigoInvitacion');
-  return r ? String(r.valor) : '';
-}
 
 function ensureSheet_(ss, name, headers) {
   let sheet = ss.getSheetByName(name);

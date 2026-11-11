@@ -6,17 +6,19 @@
       <small>CD Villamanta · 2026/27</small>
     </span>
   </a>
-  <a routerLink="/acceso" class="rol" [class.admin]="store.esAdmin()" [attr.aria-label]="store.esAdmin() ? 'Responsable' : 'Acceso responsables'">
-    @if (store.admin(); as a) {
-      🛡️ <span>{{ a.nombre }}</span>
-    } @else {
-      🔒
-    }
-  </a>
+  @if (store.admin(); as a) {
+    <a routerLink="/acceso" class="rol admin">{{ a.rol === 'Entrenador' ? '🧢' : '🛡️' }} <span>{{ a.nombre }}</span></a>
+  }
 </header>
 
 @if (store.demo) {
-  <div class="banda-demo">Modo demo · datos de prueba en este móvil · código <b>CDV-DEMO</b></div>
+  <div class="banda-demo">Modo demo · datos de prueba en este móvil</div>
+}
+
+@if (preguntarQuien()) {
+  <div class="capa-quien">
+    <app-quien-eres />
+  </div>
 }
 
 <main class="contenido">
@@ -42,8 +44,8 @@
   </a>
   <a routerLink="/multas" routerLinkActive="on">
     <span class="ico">🧾</span><span>Multas</span>
-    @if (store.bote().numPendientes) {
-      <span class="badge">{{ store.bote().numPendientes }}</span>
+    @if (store.bote().numVencidas) {
+      <span class="badge">{{ store.bote().numVencidas }}</span>
     }
   </a>
   @if (store.esAdmin()) {
@@ -53,8 +55,5 @@
   }
   <a routerLink="/reglamento" routerLinkActive="on">
     <span class="ico">📜</span><span>Normas</span>
-  </a>
-  <a routerLink="/acceso" routerLinkActive="on">
-    <span class="ico">{{ store.esAdmin() ? '🛡️' : '🔑' }}</span><span>{{ store.esAdmin() ? 'Yo' : 'Acceso' }}</span>
   </a>
 </nav>

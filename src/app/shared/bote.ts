@@ -17,14 +17,14 @@ import { Store } from '../core/store';
         <div class="barra" [attr.aria-label]="pct() + '% cobrado'"><span [style.width.%]="pct()"></span></div>
       </div>
       <div class="bote-stats">
-        <a routerLink="/multas" [queryParams]="{ v: 'pendientes' }">
+        <a routerLink="/multas">
           <strong>{{ euros(b.pendiente) }}</strong><small>pendiente · {{ b.numPendientes }}</small>
         </a>
         <span>
           <strong>{{ euros(b.total) }}</strong><small>total multas</small>
         </span>
         @if (b.numVencidas) {
-          <a class="mal" routerLink="/multas" [queryParams]="{ v: 'pendientes' }">
+          <a class="mal" routerLink="/multas">
             <strong>{{ b.numVencidas }}</strong><small>vencida{{ b.numVencidas === 1 ? '' : 's' }}</small>
           </a>
         }

@@ -106,11 +106,14 @@ h2, h3, p { margin: 0; }
 .balon { display: inline-block; animation: gira 1s linear infinite; }
 @keyframes gira { to { transform: rotate(360deg); } }
 
+/* Cada pantalla apila sus bloques con la misma separación. */
+.contenido > :not(router-outlet) { display: flex; flex-direction: column; gap: 14px; }
+
 /* ---------- comunes ---------- */
 .tarjeta { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 .tarjeta.centro { align-items: center; text-align: center; }
 .titulo { font-size: 1.1rem; font-weight: 900; margin-top: 6px; }
-.subtitulo { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin: 6px 0 -4px; }
+.subtitulo { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin: 12px 0 -6px 4px; }
 .vacio { text-align: center; color: var(--suave); padding: 24px 8px; }
 .ayuda { color: var(--suave); font-size: .9rem; line-height: 1.4; }
 .error { color: var(--mal); font-weight: 600; }
@@ -169,25 +172,32 @@ h2, h3, p { margin: 0; }
 
 .lista-ranking { list-style: none; margin: 0; padding: 0; background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); overflow: hidden; }
 .lista-ranking li + li { border-top: 1px solid var(--linea); }
-.lista-ranking a { display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 60px; }
-.lista-ranking a:active { background: var(--amarillo-2); }
+.lista-ranking li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 60px; }
 .lista-ranking .pos { width: 22px; text-align: center; font-weight: 900; color: var(--suave); }
 .lista-ranking .nombre { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .lista-ranking .nombre small { color: var(--suave); font-size: .8rem; }
+.lista-ranking .debe { color: var(--aviso); }
+.lista-ranking .debe.mal, .podio-debe.mal { color: var(--mal); }
+.podio-debe { font-size: .78rem; color: var(--ok); font-weight: 700; }
 .lista-ranking .cifra { font-weight: 900; font-size: 1.05rem; }
 .lista-ranking .limpio { opacity: .6; }
 
 /* ---------- multas ---------- */
-.segmentos { display: flex; background: #efe9cc; border-radius: 14px; padding: 4px; gap: 4px; position: sticky; top: 72px; z-index: 10; }
-.segmentos button { flex: 1; border: 0; background: transparent; border-radius: 10px; min-height: 40px; font-weight: 700; font-size: .9rem; }
-.segmentos button.on { background: var(--negro); color: var(--amarillo); }
-.segmentos .cnt { opacity: .7; font-size: .8rem; }
+.leyenda { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .85rem; font-weight: 700; }
+.punto { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 4px; }
+.punto.mal { background: var(--mal); }
+.punto.aviso { background: var(--amarillo); border: 1px solid #c9a800; }
+.punto.ok { background: var(--ok); }
 .resumen { color: var(--suave); }
 .lista-multas { display: flex; flex-direction: column; gap: 10px; }
 
-.multa { display: flex; gap: 12px; background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); padding: 14px; border-left: 5px solid var(--amarillo); }
-.multa.pagada { border-left-color: var(--ok); }
-.multa.vencida { border-left-color: var(--mal); }
+.multa { display: flex; gap: 12px; background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); padding: 14px; border: 2px solid transparent; border-left-width: 6px; }
+.multa.pendiente { background: #fff8cc; border-color: var(--amarillo); }
+.multa.vencida { background: #ffe9e9; border-color: var(--mal); }
+.multa.pagada { background: #e8f7ee; border-color: var(--ok); }
+.multa.deportiva { background: #f1f2f4; border-color: #c7cbd1; }
+.multa.vencida .importe { color: var(--mal); }
+.multa .btn-ghost { background: rgb(255 255 255 / 70%); }
 .multa .cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .multa .linea1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .multa .apodo { font-weight: 900; font-size: 1.05rem; }
@@ -201,17 +211,6 @@ h2, h3, p { margin: 0; }
 .multa .limite { font-size: .78rem; color: var(--suave); }
 .multa .acciones { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 .multa .acciones .btn { min-height: 40px; padding: 0 14px; font-size: .9rem; }
-
-/* ---------- jugador ---------- */
-.ficha { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: var(--tarjeta); border-radius: 20px; box-shadow: var(--sombra); padding: 22px 16px; }
-.ficha h2 { font-size: 1.6rem; font-weight: 900; margin-top: 6px; }
-.nombre-completo { color: var(--suave); font-size: .9rem; }
-.posicion { font-weight: 700; }
-.ficha-stats { display: flex; gap: 8px; width: 100%; margin: 8px 0; }
-.ficha-stats > div { flex: 1; background: var(--fondo); border-radius: 12px; padding: 10px 4px; display: flex; flex-direction: column; }
-.ficha-stats strong { font-size: 1.15rem; }
-.ficha-stats small { color: var(--suave); font-size: .75rem; }
-.ficha-stats .mal strong { color: var(--mal); }
 
 /* ---------- nueva multa ---------- */
 .rejilla-jugadores { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
@@ -257,3 +256,29 @@ h2, h3, p { margin: 0; }
 .tabla-multas strong { white-space: nowrap; }
 .normas li { padding: 12px 14px; font-size: .92rem; }
 .notas p { font-size: .92rem; }
+
+/* ---------- ¿quién eres? ---------- */
+.capa-quien {
+  position: fixed; inset: 0; z-index: 60; overflow-y: auto;
+  background: var(--amarillo);
+  padding: calc(env(safe-area-inset-top) + 24px) 16px calc(env(safe-area-inset-bottom) + 24px);
+}
+.quien-eres { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.quien-eres h2 { font-size: 1.8rem; font-weight: 900; }
+.qe-escudo { mix-blend-mode: multiply; height: 94px; width: auto; }
+.capa-quien .ayuda { color: #4a4200; }
+.qe-opciones { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.qe-op {
+  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 72px; padding: 10px 16px;
+  background: #fff; border: 3px solid var(--negro); border-radius: 18px; text-align: left; box-shadow: 0 4px 0 var(--negro);
+}
+.qe-op:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--negro); }
+.qe-op:disabled { opacity: .45; box-shadow: none; cursor: default; }
+.qe-gorra { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; background: var(--negro); flex: none; }
+.qe-nombre { display: flex; flex-direction: column; }
+.qe-nombre strong { font-size: 1.25rem; }
+.qe-nombre small { color: var(--suave); font-weight: 600; }
+.qe-solo-ver { width: 100%; border-color: var(--negro); margin-top: 6px; }
+.contenido .quien-eres .ayuda { color: var(--suave); }
+.contenido .qe-op { box-shadow: var(--sombra); border-width: 2px; }
+.multa > app-avatar { align-self: flex-start; }
