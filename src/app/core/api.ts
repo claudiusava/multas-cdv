@@ -30,12 +30,16 @@ type Accion =
   | { action: 'pay' | 'unpay' | 'delete'; token: string; id: string }
   | { action: 'logout'; token: string };
 
-/** Modo demo: datos de prueba en este navegador (?demo=1 / ?demo=0). */
+/**
+ * Modo demo: datos de prueba. Solo dura mientras la pestaña esté abierta
+ * (?demo=1); al cerrarla o abrir la app normal se vuelve a los datos reales.
+ */
 export function esDemo(): boolean {
   try {
+    localStorage.removeItem('cdv.demo'); // versión antigua lo dejaba fijo
     const q = new URLSearchParams(location.search).get('demo') ?? new URLSearchParams(location.hash.split('?')[1] ?? '').get('demo');
-    if (q !== null) localStorage.setItem('cdv.demo', q === '0' ? '0' : '1');
-    return localStorage.getItem('cdv.demo') === '1';
+    if (q !== null) sessionStorage.setItem('cdv.demo', q === '1' ? '1' : '0');
+    return sessionStorage.getItem('cdv.demo') === '1';
   } catch {
     return false;
   }

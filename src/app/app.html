@@ -17,6 +17,9 @@
 
 @if (preguntarQuien()) {
   <div class="capa-quien">
+    @if (store.demo) {
+      <p class="qe-demo">Modo demo · datos de prueba</p>
+    }
     <app-quien-eres />
   </div>
 }
