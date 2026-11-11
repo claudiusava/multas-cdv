@@ -7,7 +7,7 @@ export const OPCIONES_RESPONSABLE = [
   { nombre: 'Clau', rol: 'Capitán', jugadorId: 'sava-claudiu' },
   { nombre: 'David', rol: 'Capitán', jugadorId: 'navarro-cedillo-david' },
   { nombre: 'Sergio', rol: 'Capitán', jugadorId: 'vazquez-sergio' },
-  { nombre: 'Gabi', rol: 'Entrenador', jugadorId: null },
+  { nombre: 'Gabi', rol: 'Entrenador', jugadorId: 'gabi' },
 ] as const;
 
 /** Pantalla "¿Quién eres?" para autorizar el móvil de un responsable. */
@@ -24,14 +24,10 @@ export const OPCIONES_RESPONSABLE = [
       <div class="qe-opciones">
         @for (o of opciones(); track o.nombre) {
           <button type="button" class="qe-op" [disabled]="enviando()" (click)="elegir(o.nombre)">
-            @if (o.jugadorId) {
-              <app-avatar [jugador]="j(o.jugadorId)" [size]="52" />
-            } @else {
-              <span class="qe-gorra">🧢</span>
-            }
+            <app-avatar [jugador]="j(o.jugadorId, o.nombre)" [size]="52" />
             <span class="qe-nombre">
               <strong>{{ o.nombre }}</strong>
-              <small>({{ o.rol }})</small>
+              <small>({{ o.rol }}){{ o.rol === 'Entrenador' ? ' 🧢' : '' }}</small>
             </span>
           </button>
         }
@@ -50,7 +46,9 @@ export class QuienEres {
   protected readonly opciones = computed(() => OPCIONES_RESPONSABLE.filter((o) => this.store.libres().includes(o.nombre)));
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected j = jugador;
+  protected j(id: string, nombre: string) {
+    return id === 'gabi' ? { id, apodo: nombre, nombre } : jugador(id);
+  }
 
   protected async elegir(nombre: string): Promise<void> {
     if (!confirm(`¿Eres ${nombre}? Este móvil quedará autorizado para poner y cobrar multas.`)) return;
