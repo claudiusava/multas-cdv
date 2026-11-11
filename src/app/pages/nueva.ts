@@ -22,7 +22,9 @@ import { Avatar } from '../shared/avatar';
         @for (j of jugadores; track j.id) {
           <button type="button" [class.on]="jugadorId() === j.id" (click)="jugadorId.set(j.id)">
             <app-avatar [jugador]="j" [size]="44" />
-            <span>{{ j.apodo }}</span>
+            @let partes = j.apodo.split(' (');
+            <span>{{ partes[0] }}</span>
+            @if (partes[1]) { <small class="rol-ficha">({{ partes[1] }}</small> }
           </button>
         }
       </div>

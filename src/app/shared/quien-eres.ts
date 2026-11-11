@@ -27,7 +27,7 @@ export const OPCIONES_RESPONSABLE = [
             <app-avatar [jugador]="j(o.jugadorId, o.nombre)" [size]="52" />
             <span class="qe-nombre">
               <strong>{{ o.nombre }}</strong>
-              <small>({{ o.rol }}){{ o.rol === 'Entrenador' ? ' 🧢' : '' }}</small>
+              <small>({{ o.rol }})</small>
             </span>
           </button>
         }

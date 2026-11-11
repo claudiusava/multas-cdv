@@ -286,3 +286,6 @@ h2, h3, p { margin: 0; }
 .ver-mas { width: 100%; }
 .rejilla-jugadores button span { text-align: center; line-height: 1.15; }
 .lista-multas app-multa-item { content-visibility: auto; contain-intrinsic-size: auto 170px; }
+.rejilla-jugadores button { min-width: 0; overflow: hidden; }
+.rejilla-jugadores .rol-ficha { font-size: .62rem; font-weight: 600; color: var(--suave); margin-top: -3px; max-width: 100%; }
+.rejilla-jugadores button.on .rol-ficha { color: var(--negro); }
