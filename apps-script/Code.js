@@ -1,0 +1,216 @@
+/**
+ * Multas CDV — backend en Google Apps Script sobre una hoja de cálculo.
+ *
+ * Lectura pública (GET). Escritura (POST) sólo con un token de dispositivo
+ * que se obtiene canjeando el código de invitación (pestaña "Config").
+ * Máximo 4 responsables (3 capitanes + entrenador).
+ */
+
+const MAX_ADMINS = 4;
+const SHEET_MULTAS = 'Multas';
+const SHEET_ADMINS = 'Responsables';
+const SHEET_CONFIG = 'Config';
+const MULTAS_HEADERS = [
+  'id', 'fecha', 'jugadorId', 'jugador', 'infraccionId', 'concepto', 'importe',
+  'nota', 'creadaPor', 'pagada', 'fechaPago', 'cobradaPor',
+];
+const ADMINS_HEADERS = ['nombre', 'rol', 'tokenHash', 'fechaAlta', 'dispositivo'];
+
+/** Ejecútalo una vez desde el editor para crear las pestañas y el código. */
+function setup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  ensureSheet_(ss, SHEET_MULTAS, MULTAS_HEADERS);
+  ensureSheet_(ss, SHEET_ADMINS, ADMINS_HEADERS);
+  const config = ensureSheet_(ss, SHEET_CONFIG, ['clave', 'valor']);
+  if (!getInviteCode_()) {
+    const code = 'CDV-' + Math.floor(1000 + Math.random() * 9000);
+    config.appendRow(['codigoInvitacion', code]);
+  }
+  const def = ss.getSheetByName('Hoja 1') || ss.getSheetByName('Sheet1');
+  if (def && ss.getSheets().length > 1) ss.deleteSheet(def);
+  Logger.log('Listo. Código de invitación: ' + getInviteCode_());
+}
+
+function doGet(e) {
+  try {
+    return json_({ ok: true, ...readAll_() });
+  } catch (err) {
+    return json_({ ok: false, error: String(err && err.message || err) });
+  }
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    const result = handle_(body);
+    return json_({ ok: true, ...result });
+  } catch (err) {
+    return json_({ ok: false, error: String(err && err.message || err) });
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+function handle_(body) {
+  switch (body.action) {
+    case 'register': return register_(body);
+    case 'whoami': return { admin: requireAdmin_(body.token) };
+    case 'add': return addMulta_(requireAdmin_(body.token), body);
+    case 'pay': return setPaid_(requireAdmin_(body.token), body.id, true);
+    case 'unpay': return setPaid_(requireAdmin_(body.token), body.id, false);
+    case 'delete': return deleteMulta_(requireAdmin_(body.token), body.id);
+    case 'logout': return logout_(body.token);
+    default: throw new Error('Acción desconocida');
+  }
+}
+
+// ---------- lectura ----------
+
+function readAll_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const multas = rows_(ss.getSheetByName(SHEET_MULTAS)).map(r => ({
+    id: String(r.id),
+    fecha: toIso_(r.fecha),
+    jugadorId: String(r.jugadorId),
+    infraccionId: String(r.infraccionId),
+    concepto: String(r.concepto),
+    importe: Number(r.importe) || 0,
+    nota: String(r.nota || ''),
+    creadaPor: String(r.creadaPor || ''),
+    pagada: r.pagada === true || String(r.pagada).toUpperCase() === 'TRUE',
+    fechaPago: r.fechaPago ? toIso_(r.fechaPago) : null,
+    cobradaPor: String(r.cobradaPor || ''),
+  }));
+  const responsables = rows_(ss.getSheetByName(SHEET_ADMINS)).map(r => ({
+    nombre: String(r.nombre),
+    rol: String(r.rol),
+  }));
+  return { multas, responsables, plazas: MAX_ADMINS };
+}
+
+// ---------- responsables ----------
+
+function register_(body) {
+  const code = String(body.code || '').trim().toUpperCase();
+  const nombre = String(body.nombre || '').trim().slice(0, 40);
+  const rol = body.rol === 'Entrenador' ? 'Entrenador' : 'Capitán';
+  if (!nombre) throw new Error('Falta el nombre');
+  if (!code || code !== String(getInviteCode_()).toUpperCase()) {
+    Utilities.sleep(1500);
+    throw new Error('Código incorrecto');
+  }
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ADMINS);
+  const admins = rows_(sheet);
+  if (admins.some(a => String(a.nombre).toLowerCase() === nombre.toLowerCase())) {
+    throw new Error(nombre + ' ya está dado de alta. Si cambiaste de móvil, pide que te liberen la plaza en la hoja.');
+  }
+  if (admins.length >= MAX_ADMINS) throw new Error('Ya hay ' + MAX_ADMINS + ' responsables dados de alta');
+  const token = Utilities.getUuid() + Utilities.getUuid();
+  sheet.appendRow([nombre, rol, hash_(token), new Date(), String(body.dispositivo || '').slice(0, 120)]);
+  return { token, admin: { nombre, rol } };
+}
+
+function requireAdmin_(token) {
+  if (!token) throw new Error('No autorizado');
+  const h = hash_(String(token));
+  const a = rows_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ADMINS))
+    .find(r => r.tokenHash === h);
+  if (!a) throw new Error('No autorizado');
+  return { nombre: String(a.nombre), rol: String(a.rol) };
+}
+
+function logout_(token) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ADMINS);
+  const idx = findRowIndex_(sheet, 'tokenHash', hash_(String(token || '')));
+  if (idx > 0) sheet.deleteRow(idx);
+  return {};
+}
+
+// ---------- multas ----------
+
+function addMulta_(admin, b) {
+  const importe = Math.round(Number(b.importe) * 100) / 100;
+  if (!b.jugadorId || !b.concepto) throw new Error('Faltan datos');
+  if (!(importe >= 0) || importe > 500) throw new Error('Importe no válido');
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
+  const id = Utilities.getUuid();
+  const fecha = new Date();
+  sheet.appendRow([
+    id, fecha, String(b.jugadorId), String(b.jugador || ''), String(b.infraccionId || 'otra'),
+    String(b.concepto).slice(0, 160), importe, String(b.nota || '').slice(0, 300),
+    admin.nombre, false, '', '',
+  ]);
+  return { id };
+}
+
+function setPaid_(admin, id, paid) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
+  const row = findRowIndex_(sheet, 'id', String(id));
+  if (row < 0) throw new Error('Multa no encontrada');
+  const col = MULTAS_HEADERS.indexOf('pagada') + 1;
+  sheet.getRange(row, col, 1, 3).setValues([[paid, paid ? new Date() : '', paid ? admin.nombre : '']]);
+  return {};
+}
+
+function deleteMulta_(admin, id) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
+  const row = findRowIndex_(sheet, 'id', String(id));
+  if (row < 0) throw new Error('Multa no encontrada');
+  sheet.deleteRow(row);
+  return {};
+}
+
+// ---------- utilidades ----------
+
+function getInviteCode_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_CONFIG);
+  if (!sheet) return '';
+  const r = rows_(sheet).find(x => x.clave === 'codigoInvitacion');
+  return r ? String(r.valor) : '';
+}
+
+function ensureSheet_(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) sheet = ss.insertSheet(name);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(headers);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+function rows_(sheet) {
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const values = sheet.getDataRange().getValues();
+  const headers = values.shift();
+  return values
+    .filter(v => v.some(c => c !== ''))
+    .map(v => Object.fromEntries(headers.map((h, i) => [h, v[i]])));
+}
+
+function findRowIndex_(sheet, header, value) {
+  const values = sheet.getDataRange().getValues();
+  const col = values[0].indexOf(header);
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][col]) === value) return i + 1;
+  }
+  return -1;
+}
+
+function hash_(s) {
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s);
+  return bytes.map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('');
+}
+
+function toIso_(v) {
+  if (v instanceof Date) return v.toISOString();
+  const d = new Date(v);
+  return isNaN(d) ? String(v) : d.toISOString();
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}

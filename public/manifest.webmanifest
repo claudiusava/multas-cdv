@@ -1,0 +1,11 @@
+{
+  "name": "Multas CDV",
+  "short_name": "Multas CDV",
+  "description": "Control de multas del CD Villamanta",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffbea",
+  "theme_color": "#ffd400",
+  "icons": [{ "src": "icon.png", "sizes": "207x243", "type": "image/png" }]
+}

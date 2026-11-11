@@ -1,0 +1,60 @@
+<header class="cabecera">
+  <a routerLink="/" class="marca">
+    <img src="escudo.png" alt="Escudo CD Villamanta" width="38" height="44" />
+    <span>
+      <strong>Multas CDV</strong>
+      <small>CD Villamanta · 2026/27</small>
+    </span>
+  </a>
+  <a routerLink="/acceso" class="rol" [class.admin]="store.esAdmin()" [attr.aria-label]="store.esAdmin() ? 'Responsable' : 'Acceso responsables'">
+    @if (store.admin(); as a) {
+      🛡️ <span>{{ a.nombre }}</span>
+    } @else {
+      🔒
+    }
+  </a>
+</header>
+
+@if (store.demo) {
+  <div class="banda-demo">Modo demo · datos de prueba en este móvil · código <b>CDV-DEMO</b></div>
+}
+
+<main class="contenido">
+  @if (store.error() && !store.cargadoUnaVez()) {
+    <div class="tarjeta centro error-carga">
+      <p>😵 No se pudieron cargar las multas.</p>
+      <small>{{ store.error() }}</small>
+      <button class="btn btn-primario" (click)="store.cargar()">Reintentar</button>
+    </div>
+  } @else if (store.cargando() && !store.cargadoUnaVez()) {
+    <div class="cargando"><span class="balon">⚽</span> Cargando multas…</div>
+  }
+  <router-outlet />
+</main>
+
+@if (store.aviso(); as a) {
+  <div class="toast" role="status">{{ a }}</div>
+}
+
+<nav class="barra-nav">
+  <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">
+    <span class="ico">🏆</span><span>Ranking</span>
+  </a>
+  <a routerLink="/multas" routerLinkActive="on">
+    <span class="ico">🧾</span><span>Multas</span>
+    @if (store.bote().numPendientes) {
+      <span class="badge">{{ store.bote().numPendientes }}</span>
+    }
+  </a>
+  @if (store.esAdmin()) {
+    <a routerLink="/nueva" routerLinkActive="on" class="fab" aria-label="Nueva multa">
+      <span class="ico">＋</span>
+    </a>
+  }
+  <a routerLink="/reglamento" routerLinkActive="on">
+    <span class="ico">📜</span><span>Normas</span>
+  </a>
+  <a routerLink="/acceso" routerLinkActive="on">
+    <span class="ico">{{ store.esAdmin() ? '🛡️' : '🔑' }}</span><span>{{ store.esAdmin() ? 'Yo' : 'Acceso' }}</span>
+  </a>
+</nav>
