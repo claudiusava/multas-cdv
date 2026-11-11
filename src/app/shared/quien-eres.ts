@@ -40,10 +40,6 @@ export const OPCIONES_RESPONSABLE = [
       @if (error()) {
         <p class="error">{{ error() }}</p>
       }
-
-      <button type="button" class="btn btn-ghost qe-solo-ver" (click)="soloVer()" [disabled]="enviando()">
-        Soy jugador, solo quiero ver las multas
-      </button>
     </div>
   `,
 })
@@ -71,8 +67,4 @@ export class QuienEres {
     }
   }
 
-  protected soloVer(): void {
-    this.store.marcarVisto();
-    this.hecho.emit();
-  }
 }

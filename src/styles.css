@@ -278,7 +278,6 @@ h2, h3, p { margin: 0; }
 .qe-nombre { display: flex; flex-direction: column; }
 .qe-nombre strong { font-size: 1.25rem; }
 .qe-nombre small { color: var(--suave); font-weight: 600; }
-.qe-solo-ver { width: 100%; border-color: var(--negro); margin-top: 6px; }
 .contenido .quien-eres .ayuda { color: var(--suave); }
 .contenido .qe-op { box-shadow: var(--sombra); border-width: 2px; }
 .multa > app-avatar { align-self: flex-start; }

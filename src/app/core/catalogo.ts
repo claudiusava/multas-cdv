@@ -55,7 +55,7 @@ export const INFRACCIONES: Infraccion[] = [
   { id: 'ent-chanclas', ambito: 'Entrenamientos', concepto: 'Acudir en chanclas o zuecos', importe: 2 },
   { id: 'par-tarde', ambito: 'Partidos', concepto: 'Llegar tarde al partido', importe: 2 },
   { id: 'par-tarde-sin-avisar', ambito: 'Partidos', concepto: 'Llegar tarde al partido sin avisar', importe: 4, extra: 'Si supera los 10′: posibilidad de no jugar y salir de convocatoria' },
-  { id: 'par-no-acudir', ambito: 'Partidos', concepto: 'No acudir al partido y no avisar (convocado)', importe: 0, extra: 'Fuera de convocatoria el siguiente partido' },
+  { id: 'par-no-acudir', ambito: 'Partidos', concepto: 'No acudir al partido y no avisar (convocado)', importe: 5, extra: 'Fuera de convocatoria el siguiente partido' },
   { id: 'par-vestimenta', ambito: 'Partidos', concepto: 'No acudir con la vestimenta estipulada', importe: 2, porUnidad: 'prenda' },
   { id: 'par-respeto', ambito: 'Partidos', concepto: 'Faltar al respeto a rivales, CT rival, árbitros, grada o mantenimiento', importe: 10, extra: 'Sanción disciplinaria a decidir por el CT' },
   { id: 'par-amarilla', ambito: 'Partidos', concepto: 'Tarjeta amarilla por hablar', importe: 5 },
