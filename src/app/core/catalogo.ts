@@ -45,6 +45,7 @@ export const JUGADORES: Jugador[] = [
   { id: 'vazquez-sergio', apodo: 'Sergio', nombre: 'Sergio Vázquez Jiménez' },
   { id: 'velasco-carrero-iker', apodo: 'Iker', nombre: 'Iker Velasco Carrero' },
   { id: 'velasco-sanchez-alvaro', apodo: 'Álvaro', nombre: 'Álvaro Velasco Sánchez' },
+  { id: 'gabi', apodo: 'Gabi (Entrenador)', nombre: 'Gabi, entrenador' },
 ];
 
 /** Régimen interno 2026/27. */

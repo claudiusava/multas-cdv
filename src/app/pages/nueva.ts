@@ -148,7 +148,9 @@ export class NuevaPage {
   protected guardar(): void {
     const i = this.inf();
     const j = this.j();
-    if (!i || !j || !this.valida()) return;
+    // Un doble toque nervioso no debe crear la multa dos veces.
+    if (!i || !j || !this.valida() || this.guardando()) return;
+    this.guardando.set(true);
     const importe = this.importe();
     const concepto = i.libre
       ? this.conceptoLibre.trim()

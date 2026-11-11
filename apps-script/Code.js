@@ -9,6 +9,14 @@
 /** Únicos responsables posibles (3 capitanes + entrenador). Un móvil por persona. */
 const RESPONSABLES = { Clau: 'Capitán', David: 'Capitán', Sergio: 'Capitán', Gabi: 'Entrenador' };
 const MAX_ADMINS = Object.keys(RESPONSABLES).length;
+/** Quién puede ser multado (mismo listado que src/app/core/catalogo.ts). */
+const JUGADORES_IDS = [
+  'diaz-nunez-rodrigo', 'el-moussaqui-samir', 'elissaoui-hicham', 'fernandez-zubillaga-diego', 'fquihi-soufian',
+  'garcia-farraces-jorge', 'gomez-batanero-daniel', 'jimenez-duque-bruno', 'lopez-corona-alejandro', 'lozano-fresno-javier',
+  'macias-maganto-javier', 'martin-lopez-jaime', 'navarro-cedillo-david', 'parrilla-daniel', 'pascual-adrian',
+  'pascual-hector', 'pasero-ignacio', 'perez-torrescusa-victor', 'reneo-jose-manuel', 'sanchez-martin-diego',
+  'sava-claudiu', 'vazquez-sergio', 'velasco-carrero-iker', 'velasco-sanchez-alvaro', 'gabi',
+];
 const SHEET_MULTAS = 'Multas';
 const SHEET_ADMINS = 'Responsables';
 const MULTAS_HEADERS = [
@@ -17,7 +25,7 @@ const MULTAS_HEADERS = [
 ];
 const ADMINS_HEADERS = ['nombre', 'rol', 'tokenHash', 'fechaAlta', 'dispositivo'];
 const ZONA = 'Europe/Madrid';
-const CACHE_KEY = 'datos-v2';
+const CACHE_KEY = 'datos-v3';
 const CACHE_SEG = 300; // ediciones manuales en la hoja se ven en ≤ 5 min
 
 /** Ejecútalo una vez desde el editor para crear las pestañas y el código. */
@@ -35,40 +43,52 @@ function doGet(e) {
     ensureFormato_();
     const cache = CacheService.getScriptCache();
     const hit = cache.get(CACHE_KEY);
-    if (hit) return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
+    if (hit) {
+      const json = Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(hit), 'application/x-gzip')).getDataAsString();
+      return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+    }
     return json_({ ok: true, ...readFresh_() });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
   }
 }
 
+const ESCRITURAS = ['add', 'pay', 'unpay', 'delete'];
+
 function doPost(e) {
-  const lock = LockService.getScriptLock();
+  let lock = null;
   try {
-    lock.waitLock(20000);
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    const result = handle_(body);
-    const cambia = ['add', 'pay', 'unpay', 'delete', 'register', 'logout'].indexOf(body.action) >= 0;
-    if (!cambia) return json_({ ok: true, ...result });
+    const accion = body.action;
+    // Comprobaciones sin esperar turno: las peticiones falsas nunca bloquean a los responsables.
+    if (accion === 'whoami') return json_({ ok: true, admin: requireAdmin_(body.token) });
+    if (ESCRITURAS.indexOf(accion) < 0 && accion !== 'register' && accion !== 'logout') throw new Error('Acción desconocida');
+    const admin = ESCRITURAS.indexOf(accion) >= 0 ? requireAdmin_(body.token) : null;
+    if (accion === 'add') validarMulta_(body);
+    if (accion === 'register' && !Object.prototype.hasOwnProperty.call(RESPONSABLES, String(body.nombre || '').trim())) {
+      throw new Error('Solo pueden darse de alta ' + Object.keys(RESPONSABLES).join(', '));
+    }
+    // Solo la escritura (y la lectura que la acompaña) va por turnos.
+    lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+    const result = handle_(accion, body, admin);
     // Devuelve los datos actualizados en la misma respuesta: el móvil no necesita otra llamada.
     return json_({ ok: true, ...result, datos: readFresh_() });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
   } finally {
-    try { lock.releaseLock(); } catch (_) {}
+    if (lock) try { lock.releaseLock(); } catch (_) {}
   }
 }
 
-function handle_(body) {
-  switch (body.action) {
+function handle_(accion, body, admin) {
+  switch (accion) {
     case 'register': return register_(body);
-    case 'whoami': return { admin: requireAdmin_(body.token) };
-    case 'add': return addMulta_(requireAdmin_(body.token), body);
-    case 'pay': return setPaid_(requireAdmin_(body.token), body.id, true);
-    case 'unpay': return setPaid_(requireAdmin_(body.token), body.id, false);
-    case 'delete': return deleteMulta_(requireAdmin_(body.token), body.id);
+    case 'add': return addMulta_(admin, body);
+    case 'pay': return setPaid_(admin, body.id, true);
+    case 'unpay': return setPaid_(admin, body.id, false);
+    case 'delete': return deleteMulta_(admin, body.id);
     case 'logout': return logout_(body.token);
-    default: throw new Error('Acción desconocida');
   }
 }
 
@@ -77,9 +97,15 @@ function handle_(body) {
 /** Lee la hoja y deja el resultado en caché para las siguientes visitas. */
 function readFresh_() {
   const datos = readAll_();
+  const cache = CacheService.getScriptCache();
   try {
-    CacheService.getScriptCache().put(CACHE_KEY, JSON.stringify({ ok: true, ...datos }), CACHE_SEG);
-  } catch (_) { /* > 100 KB: sin caché */ }
+    // Comprimido: caben miles de multas en los 100 KB que permite Google.
+    const gz = Utilities.gzip(Utilities.newBlob(JSON.stringify({ ok: true, ...datos }), 'application/json'));
+    cache.put(CACHE_KEY, Utilities.base64Encode(gz.getBytes()), CACHE_SEG);
+  } catch (_) {
+    // > 100 KB: no cabe. Se borra la copia anterior para no servir datos antiguos.
+    cache.remove(CACHE_KEY);
+  }
   return datos;
 }
 
@@ -142,7 +168,7 @@ function readAll_() {
 
 function register_(body) {
   const nombre = String(body.nombre || '').trim();
-  const rol = RESPONSABLES[nombre];
+  const rol = Object.prototype.hasOwnProperty.call(RESPONSABLES, nombre) ? RESPONSABLES[nombre] : null;
   if (!rol) throw new Error('Solo pueden darse de alta ' + Object.keys(RESPONSABLES).join(', '));
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ADMINS);
   const admins = rows_(sheet);
@@ -172,17 +198,31 @@ function logout_(token) {
 
 // ---------- multas ----------
 
-function addMulta_(admin, b) {
-  const importe = Math.round(Number(b.importe) * 100) / 100;
-  if (!b.jugadorId || !b.concepto) throw new Error('Faltan datos');
+/** Rechaza datos que la app nunca enviaría (peticiones hechas a mano). */
+function validarMulta_(b) {
+  if (JUGADORES_IDS.indexOf(String(b.jugadorId)) < 0) throw new Error('Jugador desconocido');
+  if (!String(b.concepto || '').trim()) throw new Error('Falta el concepto');
+  if (b.importe === null || b.importe === '' || b.importe === undefined) throw new Error('Falta el importe');
+  const importe = Number(b.importe);
   if (!(importe >= 0) || importe > 500) throw new Error('Importe no válido');
+}
+
+/** Evita que un texto que empieza por = + - @ se guarde como fórmula en la hoja. */
+function texto_(v, max) {
+  const t = String(v || '').slice(0, max);
+  return /^[=+\-@]/.test(t) ? "'" + t : t;
+}
+
+function addMulta_(admin, b) {
+  validarMulta_(b);
+  const importe = Math.round(Number(b.importe) * 100) / 100;
   ensureFormato_();
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
   const id = Utilities.getUuid();
   const fecha = new Date().toISOString();
   sheet.appendRow([
-    id, fecha, String(b.jugadorId), String(b.jugador || ''), String(b.infraccionId || 'otra'),
-    String(b.concepto).slice(0, 160), importe, String(b.nota || '').slice(0, 300),
+    id, fecha, String(b.jugadorId), texto_(b.jugador, 40), texto_(b.infraccionId || 'otra', 40),
+    texto_(b.concepto, 160), importe, texto_(b.nota, 300),
     admin.nombre, false, '', '',
   ]);
   return { id };

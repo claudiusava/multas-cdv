@@ -46,8 +46,8 @@ export class QuienEres {
   protected readonly opciones = computed(() => OPCIONES_RESPONSABLE.filter((o) => this.store.libres().includes(o.nombre)));
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected j(id: string, nombre: string) {
-    return id === 'gabi' ? { id, apodo: nombre, nombre } : jugador(id);
+  protected j(id: string, _nombre: string) {
+    return jugador(id);
   }
 
   protected async elegir(nombre: string): Promise<void> {

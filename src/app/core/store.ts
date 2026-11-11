@@ -132,7 +132,10 @@ export class Store {
     } catch (e) {
       this.enVuelo--;
       this.multas.set(antes);
-      this.avisar(`${error}: ${(e as Error).message}`);
+      const msg = (e as Error).message;
+      // Le han quitado la plaza en la hoja: este móvil deja de ser responsable.
+      if (msg === 'No autorizado') this.guardarAdmin(null);
+      this.avisar(msg === 'No autorizado' ? 'Este móvil ya no está autorizado como responsable' : `${error}: ${msg}`);
       if (this.enVuelo === 0) this.cargar(true);
       return false;
     }

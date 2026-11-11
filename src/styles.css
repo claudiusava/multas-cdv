@@ -283,3 +283,6 @@ h2, h3, p { margin: 0; }
 .multa > app-avatar { align-self: flex-start; }
 .qe-demo { max-width: 460px; margin: 0 auto 12px; padding: 6px 12px; border-radius: 10px; background: var(--negro); color: var(--amarillo); text-align: center; font-size: .85rem; font-weight: 700; }
 .multa .guardando { color: var(--aviso); font-weight: 700; }
+.ver-mas { width: 100%; }
+.rejilla-jugadores button span { text-align: center; line-height: 1.15; }
+.lista-multas app-multa-item { content-visibility: auto; contain-intrinsic-size: auto 170px; }
