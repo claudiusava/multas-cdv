@@ -48,6 +48,11 @@ export const JUGADORES: Jugador[] = [
   { id: 'gabi', apodo: 'Gabi (Entrenador)', nombre: 'Gabi, entrenador' },
 ];
 
+/** Plantilla por orden alfabético de apodo; el entrenador, al final. */
+export const JUGADORES_ORDENADOS: Jugador[] = [...JUGADORES].sort(
+  (a, b) => Number(a.id === 'gabi') - Number(b.id === 'gabi') || a.apodo.localeCompare(b.apodo, 'es'),
+);
+
 /** Régimen interno 2026/27. */
 export const INFRACCIONES: Infraccion[] = [
   { id: 'ent-no-avisar', ambito: 'Entrenamientos', concepto: 'No venir al entreno y no avisar', importe: 5, extra: 'Motivo de no convocatoria' },

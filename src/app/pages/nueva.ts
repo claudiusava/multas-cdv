@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AMBITOS, INFRACCIONES, Infraccion, JUGADORES, PLAZO_DIAS, jugador } from '../core/catalogo';
+import { AMBITOS, INFRACCIONES, Infraccion, JUGADORES_ORDENADOS, PLAZO_DIAS, jugador } from '../core/catalogo';
 import { euros } from '../core/multas';
 import { Store } from '../core/store';
 import { Avatar } from '../shared/avatar';
@@ -95,7 +95,7 @@ export class NuevaPage {
   protected readonly store = inject(Store);
   private readonly router = inject(Router);
   protected readonly euros = euros;
-  protected readonly jugadores = JUGADORES;
+  protected readonly jugadores = JUGADORES_ORDENADOS;
   protected readonly ambitos = AMBITOS;
   protected readonly plazo = PLAZO_DIAS;
 
