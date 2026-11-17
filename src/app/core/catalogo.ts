@@ -34,7 +34,6 @@ export const JUGADORES: Jugador[] = [
   { id: 'macias-maganto-javier', apodo: 'Javi', nombre: 'Javier Macías Maganto' },
   { id: 'martin-lopez-jaime', apodo: 'Jaime', nombre: 'Jaime Martín López' },
   { id: 'navarro-cedillo-david', apodo: 'David', nombre: 'David Navarro Cedillo' },
-  { id: 'parrilla-daniel', apodo: 'Parri', nombre: 'Daniel Parrilla Fernández Llamazares' },
   { id: 'pascual-adrian', apodo: 'Adri', nombre: 'Adrián Vicente Pascual Mendoza' },
   { id: 'pascual-hector', apodo: 'Héctor', nombre: 'Héctor Vicente Pascual Mendoza' },
   { id: 'pasero-ignacio', apodo: 'Pase', nombre: 'Ignacio Pasero García' },
@@ -44,7 +43,9 @@ export const JUGADORES: Jugador[] = [
   { id: 'sava-claudiu', apodo: 'Clau', nombre: 'Claudiu Sava' },
   { id: 'vazquez-sergio', apodo: 'Sergio', nombre: 'Sergio Vázquez Jiménez' },
   { id: 'velasco-carrero-iker', apodo: 'Iker', nombre: 'Iker Velasco Carrero' },
-  { id: 'velasco-sanchez-alvaro', apodo: 'Álvaro', nombre: 'Álvaro Velasco Sánchez' },
+  { id: 'abde', apodo: 'Abde', nombre: 'Abde' },
+  { id: 'zara', apodo: 'Zara', nombre: 'Zara' },
+  { id: 'wael', apodo: 'Wael', nombre: 'Wael' },
   { id: 'gabi', apodo: 'Gabi (Entrenador)', nombre: 'Gabi, entrenador' },
 ];
 

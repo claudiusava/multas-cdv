@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { Jugador } from '../core/catalogo';
 
 type Piel = 'blanco' | 'clarito' | 'tostado' | 'marroqui';
-type Peinado = 'corto' | 'tupe' | 'flequillo' | 'pinchos' | 'raya' | 'poco' | 'rizado';
+type Peinado = 'corto' | 'tupe' | 'flequillo' | 'pinchos' | 'raya' | 'poco' | 'rizado' | 'rizadoCorto';
 type ColorPelo = 'moreno' | 'negro' | 'castano' | 'rubio' | 'platino' | 'pelirrojo';
-type Barba = 'no' | 'barba' | 'perilla';
+type Barba = 'no' | 'barba' | 'perilla' | 'perillita';
 
 interface Rasgos {
   piel: Piel;
@@ -35,7 +35,6 @@ const RASGOS: Record<string, Rasgos> = {
   'pascual-adrian': { piel: 'blanco', peinado: 'flequillo', pelo: 'moreno' },
   'pascual-hector': { piel: 'blanco', peinado: 'flequillo', pelo: 'moreno' }, // gemelo de Adri
   'lopez-corona-alejandro': { piel: 'blanco', peinado: 'corto', pelo: 'rubio' },
-  'velasco-sanchez-alvaro': { piel: 'clarito', peinado: 'tupe', pelo: 'moreno' },
   'gomez-batanero-daniel': { piel: 'blanco', peinado: 'poco', pelo: 'platino' },
   'jimenez-duque-bruno': { piel: 'blanco', peinado: 'tupe', pelo: 'moreno' },
   'lozano-fresno-javier': { piel: 'blanco', peinado: 'raya', pelo: 'rubio' },
@@ -48,7 +47,6 @@ const RASGOS: Record<string, Rasgos> = {
   'macias-maganto-javier': { piel: 'clarito', peinado: 'corto', pelo: 'moreno' },
   'garcia-farraces-jorge': { piel: 'blanco', peinado: 'pinchos', pelo: 'moreno' },
   'reneo-jose-manuel': { piel: 'blanco', peinado: 'tupe', pelo: 'moreno' },
-  'parrilla-daniel': { piel: 'blanco', peinado: 'flequillo', pelo: 'negro' },
   'pasero-ignacio': { piel: 'blanco', peinado: 'corto', pelo: 'moreno', barba: 'barba' },
   'fernandez-zubillaga-diego': { piel: 'blanco', peinado: 'rizado', pelo: 'pelirrojo', pecas: true },
   'diaz-nunez-rodrigo': { piel: 'blanco', peinado: 'corto', pelo: 'moreno' },
@@ -56,10 +54,13 @@ const RASGOS: Record<string, Rasgos> = {
   'vazquez-sergio': { piel: 'blanco', peinado: 'tupe', pelo: 'negro' },
   'fquihi-soufian': { piel: 'marroqui', peinado: 'pinchos', pelo: 'negro', barba: 'perilla' },
   'perez-torrescusa-victor': { piel: 'blanco', peinado: 'corto', pelo: 'castano' },
+  abde: { piel: 'marroqui', peinado: 'rizado', pelo: 'negro', barba: 'perillita' },
+  zara: { piel: 'tostado', peinado: 'corto', pelo: 'negro', barba: 'perilla' }, // bigotillo y perilla
+  wael: { piel: 'marroqui', peinado: 'rizadoCorto', pelo: 'negro', barba: 'perillita' },
   gabi: { piel: 'blanco', peinado: 'rizado', pelo: 'moreno', barba: 'barba' }, // entrenador
 };
 
-const PEINADOS: Record<Exclude<Peinado, 'rizado'>, string> = {
+const PEINADOS: Record<Exclude<Peinado, 'rizado' | 'rizadoCorto'>, string> = {
   corto: 'M19 25 C18 13 26 10 32 10 C40 10 46 14 45 25 C42 18 36 17 32 17 C27 17 22 19 19 25 Z',
   tupe: 'M19 25 C17 12 24 5 33 5.5 C42 6 47 13 45 25 C43 18 39 16 35 16 C30 13 23 17 19 25 Z',
   flequillo:
@@ -106,6 +107,13 @@ function hash(s: string): number {
             <circle cx="32" cy="11.5" r="6" /><circle cx="27.5" cy="12.5" r="4.5" /><circle cx="36.5" cy="12.5" r="4.5" />
             <circle cx="24" cy="19.5" r="3.6" /><circle cx="40" cy="19.5" r="3.6" /><circle cx="32" cy="17" r="3.8" />
           </g>
+        } @else if (a.rizadoCorto) {
+          <g [attr.fill]="a.pelo">
+            <circle cx="21" cy="21.5" r="3.2" /><circle cx="43" cy="21.5" r="3.2" />
+            <circle cx="23.5" cy="16.5" r="3.6" /><circle cx="40.5" cy="16.5" r="3.6" />
+            <circle cx="28" cy="13.5" r="3.8" /><circle cx="36" cy="13.5" r="3.8" /><circle cx="32" cy="12.8" r="3.8" />
+            <circle cx="26.5" cy="18" r="2.8" /><circle cx="37.5" cy="18" r="2.8" /><circle cx="32" cy="17.2" r="2.8" />
+          </g>
         } @else {
           <path [attr.d]="a.peinado" [attr.fill]="a.pelo" />
         }
@@ -113,6 +121,8 @@ function hash(s: string): number {
         @if (a.barba === 'barba') {
           <path d="M19.5 28 C19.5 40 25.5 43.5 32 43.5 C38.5 43.5 44.5 40 44.5 28 C42.5 34.5 38.5 36.5 32 36.5 C25.5 36.5 21.5 34.5 19.5 28 Z" [attr.fill]="a.pelo" />
           <path d="M26.5 33.8 Q32 31 37.5 33.8 Q32 35.3 26.5 33.8 Z" [attr.fill]="a.pelo" />
+        } @else if (a.barba === 'perillita') {
+          <path d="M29.5 37.8 Q32 42 34.5 37.8 Q32 39 29.5 37.8 Z" [attr.fill]="a.pelo" />
         } @else if (a.barba === 'perilla') {
           <path d="M28.5 37.6 Q32 43.5 35.5 37.6 Q32 39.2 28.5 37.6 Z" [attr.fill]="a.pelo" />
           <path d="M28 33.6 Q32 32 36 33.6" fill="none" [attr.stroke]="a.pelo" stroke-width="1.4" stroke-linecap="round" />
@@ -154,8 +164,9 @@ export class Avatar {
       piel: PIELES[r.piel],
       pelo,
       ceja: r.pelo === 'platino' || r.pelo === 'rubio' ? '#a07a2e' : pelo,
-      peinado: r.peinado === 'rizado' ? '' : PEINADOS[r.peinado],
+      peinado: r.peinado === 'rizado' || r.peinado === 'rizadoCorto' ? '' : PEINADOS[r.peinado],
       rizado: r.peinado === 'rizado',
+      rizadoCorto: r.peinado === 'rizadoCorto',
       barba: r.barba ?? 'no',
       pecas: !!r.pecas,
       fondo: FONDOS[(h >>> 6) % FONDOS.length],

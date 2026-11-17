@@ -13,9 +13,9 @@ const MAX_ADMINS = Object.keys(RESPONSABLES).length;
 const JUGADORES_IDS = [
   'diaz-nunez-rodrigo', 'el-moussaqui-samir', 'elissaoui-hicham', 'fernandez-zubillaga-diego', 'fquihi-soufian',
   'garcia-farraces-jorge', 'gomez-batanero-daniel', 'jimenez-duque-bruno', 'lopez-corona-alejandro', 'lozano-fresno-javier',
-  'macias-maganto-javier', 'martin-lopez-jaime', 'navarro-cedillo-david', 'parrilla-daniel', 'pascual-adrian',
+  'macias-maganto-javier', 'martin-lopez-jaime', 'navarro-cedillo-david', 'pascual-adrian',
   'pascual-hector', 'pasero-ignacio', 'perez-torrescusa-victor', 'reneo-jose-manuel', 'sanchez-martin-diego',
-  'sava-claudiu', 'vazquez-sergio', 'velasco-carrero-iker', 'velasco-sanchez-alvaro', 'gabi',
+  'sava-claudiu', 'vazquez-sergio', 'velasco-carrero-iker', 'abde', 'zara', 'wael', 'gabi',
 ];
 const SHEET_MULTAS = 'Multas';
 const SHEET_ADMINS = 'Responsables';
