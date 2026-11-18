@@ -56,14 +56,14 @@ export const JUGADORES_ORDENADOS: Jugador[] = [...JUGADORES].sort(
 
 /** Régimen interno 2026/27. */
 export const INFRACCIONES: Infraccion[] = [
-  { id: 'ent-no-avisar', ambito: 'Entrenamientos', concepto: 'No venir al entreno y no avisar', importe: 5, extra: 'Motivo de no convocatoria' },
+  { id: 'ent-chanclas', ambito: 'Entrenamientos', concepto: 'Acudir en chanclas o zuecos', importe: 2 },
   { id: 'ent-tarde', ambito: 'Entrenamientos', concepto: 'Llegar tarde al entreno', importe: 2 },
   { id: 'ent-tarde-sin-avisar', ambito: 'Entrenamientos', concepto: 'Llegar tarde al entreno sin avisar', importe: 4 },
-  { id: 'ent-chanclas', ambito: 'Entrenamientos', concepto: 'Acudir en chanclas o zuecos', importe: 2 },
+  { id: 'ent-no-avisar', ambito: 'Entrenamientos', concepto: 'No venir al entreno y no avisar', importe: 5, extra: 'Motivo de no convocatoria' },
+  { id: 'par-vestimenta', ambito: 'Partidos', concepto: 'No acudir con la vestimenta estipulada', importe: 2, porUnidad: 'prenda' },
   { id: 'par-tarde', ambito: 'Partidos', concepto: 'Llegar tarde al partido', importe: 2 },
   { id: 'par-tarde-sin-avisar', ambito: 'Partidos', concepto: 'Llegar tarde al partido sin avisar', importe: 4, extra: 'Si supera los 10′: posibilidad de no jugar y salir de convocatoria' },
   { id: 'par-no-acudir', ambito: 'Partidos', concepto: 'No acudir al partido y no avisar (convocado)', importe: 5, extra: 'Fuera de convocatoria el siguiente partido' },
-  { id: 'par-vestimenta', ambito: 'Partidos', concepto: 'No acudir con la vestimenta estipulada', importe: 2, porUnidad: 'prenda' },
   { id: 'par-amarilla', ambito: 'Partidos', concepto: 'Tarjeta amarilla por hablar', importe: 5 },
   { id: 'par-roja', ambito: 'Partidos', concepto: 'Tarjeta roja por hablar', importe: 15 },
   { id: 'par-respeto', ambito: 'Otros aspectos', concepto: 'Faltar al respeto a compañeros, rivales, CT, árbitros, grada o mantenimiento', importe: 10, extra: 'Sanción disciplinaria a decidir por el CT' },
