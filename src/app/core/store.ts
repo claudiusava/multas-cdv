@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { versionNueva } from './actualizar';
 import { Api, Datos, NuevaMulta, esDemo } from './api';
 import { calcularBote, calcularRanking, Multa, porFechaDesc, Responsable } from './multas';
 
@@ -80,14 +81,36 @@ export class Store {
     if (cache) this.aplicar(cache, false);
     setInterval(() => this.ahora.set(Date.now()), 30_000);
     setInterval(() => document.visibilityState === 'visible' && this.cargar(true), 90_000);
+    setInterval(() => document.visibilityState === 'visible' && this.buscarActualizacion(false), 5 * 60_000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         this.ahora.set(Date.now());
         this.cargar(true);
+        this.buscarActualizacion(true);
       }
     });
     this.cargar(!!cache);
     this.comprobarAdmin();
+    this.buscarActualizacion(true);
+  }
+
+  /**
+   * Versión nueva publicada: se recarga sola. Al volver a la app, al momento;
+   * con la app abierta, solo si no se está guardando nada ni poniendo una multa.
+   */
+  private async buscarActualizacion(alVolver: boolean): Promise<void> {
+    const nueva = await versionNueva();
+    if (!nueva) return;
+    const ocupado = this.enVuelo > 0 || (!alVolver && location.hash.startsWith('#/nueva'));
+    if (ocupado) return;
+    try {
+      // Una sola recarga por versión: si el navegador aún sirve la vieja, no entra en bucle.
+      if (sessionStorage.getItem('cdv.recarga') === nueva) return;
+      sessionStorage.setItem('cdv.recarga', nueva);
+    } catch {
+      return;
+    }
+    location.reload();
   }
 
   async cargar(silencioso = false): Promise<void> {
