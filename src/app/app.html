@@ -47,7 +47,9 @@
   </a>
   <a routerLink="/multas" routerLinkActive="on">
     <span class="ico">🧾</span><span>Multas</span>
-    @if (store.bote().numVencidas) {
+    @if (store.borradosPorAprobar()) {
+      <span class="badge">🗑️{{ store.borradosPorAprobar() }}</span>
+    } @else if (store.bote().numVencidas) {
       <span class="badge">{{ store.bote().numVencidas }}</span>
     }
   </a>

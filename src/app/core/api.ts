@@ -27,7 +27,7 @@ type Accion =
   | { action: 'register'; nombre: string; dispositivo: string }
   | { action: 'whoami'; token: string }
   | ({ action: 'add'; token: string } & NuevaMulta)
-  | { action: 'pay' | 'unpay' | 'delete'; token: string; id: string }
+  | { action: 'pay' | 'unpay' | 'delete' | 'approvedel' | 'canceldel'; token: string; id: string }
   | { action: 'logout'; token: string };
 
 /**
@@ -174,10 +174,29 @@ function demoEnviar(b: Accion): Record<string, unknown> {
       guardar();
       return {};
     }
-    case 'delete':
+    case 'delete': {
+      const m = datos.multas.find((x) => x.id === b.id);
+      if (!m) throw new Error('Multa no encontrada');
+      if (m.borradoPor) throw new Error(m.borradoPor + ' ya ha pedido borrarla');
+      m.borradoPor = yo();
+      guardar();
+      return {};
+    }
+    case 'approvedel': {
+      const m = datos.multas.find((x) => x.id === b.id);
+      if (!m) throw new Error('Multa no encontrada');
+      if (!m.borradoPor) throw new Error('Nadie ha pedido borrar esta multa');
+      if (m.borradoPor === yo()) throw new Error('Tiene que aprobarlo otro capitán o el entrenador');
       datos.multas = datos.multas.filter((x) => x.id !== b.id);
       guardar();
       return {};
+    }
+    case 'canceldel': {
+      const m = datos.multas.find((x) => x.id === b.id);
+      if (m) m.borradoPor = '';
+      guardar();
+      return {};
+    }
     case 'logout':
       return {};
   }

@@ -12,6 +12,8 @@ export interface Multa {
   pagada: boolean;
   fechaPago: string | null;
   cobradaPor: string;
+  /** Responsable que ha pedido borrarla (otro tiene que aprobarlo). Vacío si no. */
+  borradoPor?: string;
 }
 
 export interface Responsable {

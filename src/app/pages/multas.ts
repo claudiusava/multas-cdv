@@ -14,6 +14,9 @@ import { MultaItem } from '../shared/multa-item';
       <span class="punto aviso"></span> En plazo {{ b.numPendientes - b.numVencidas }}
       <span class="punto ok"></span> Pagadas {{ numPagadas() }}
     </div>
+    @if (store.borradosPorAprobar(); as n) {
+      <p class="aviso-borrado">🗑️ {{ n === 1 ? 'Hay 1 multa' : 'Hay ' + n + ' multas' }} que otro responsable quiere borrar. Apruébalo o recházalo abajo.</p>
+    }
     @if (b.pendiente > 0) {
       <p class="resumen">Pendiente de cobro: <strong>{{ euros(b.pendiente) }}</strong></p>
     }
@@ -37,7 +40,12 @@ import { MultaItem } from '../shared/multa-item';
 export class MultasPage {
   protected readonly store = inject(Store);
   protected readonly euros = euros;
-  protected readonly lista = computed(() => ordenarListado(this.store.multas()));
+  /** Para los responsables, las que esperan aprobación de borrado van arriba del todo. */
+  protected readonly lista = computed(() => {
+    const l = ordenarListado(this.store.multas());
+    if (!this.store.esAdmin()) return l;
+    return [...l.filter((m) => m.borradoPor), ...l.filter((m) => !m.borradoPor)];
+  });
   protected readonly numPagadas = computed(() => this.store.multas().filter((m) => m.pagada).length);
 
   /** Las pendientes se ven siempre; de las pagadas (abajo) solo las más recientes, para ir fluido. */

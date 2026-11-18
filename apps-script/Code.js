@@ -21,7 +21,7 @@ const SHEET_MULTAS = 'Multas';
 const SHEET_ADMINS = 'Responsables';
 const MULTAS_HEADERS = [
   'id', 'fecha', 'jugadorId', 'jugador', 'infraccionId', 'concepto', 'importe',
-  'nota', 'creadaPor', 'pagada', 'fechaPago', 'cobradaPor',
+  'nota', 'creadaPor', 'pagada', 'fechaPago', 'cobradaPor', 'borradoPor',
 ];
 const ADMINS_HEADERS = ['nombre', 'rol', 'tokenHash', 'fechaAlta', 'dispositivo'];
 const ZONA = 'Europe/Madrid';
@@ -53,7 +53,8 @@ function doGet(e) {
   }
 }
 
-const ESCRITURAS = ['add', 'pay', 'unpay', 'delete'];
+/** Borrar necesita dos responsables: uno lo pide y otro distinto lo aprueba. */
+const ESCRITURAS = ['add', 'pay', 'unpay', 'delete', 'approvedel', 'canceldel'];
 
 function doPost(e) {
   let lock = null;
@@ -87,7 +88,9 @@ function handle_(accion, body, admin) {
     case 'add': return addMulta_(admin, body);
     case 'pay': return setPaid_(admin, body.id, true);
     case 'unpay': return setPaid_(admin, body.id, false);
-    case 'delete': return deleteMulta_(admin, body.id);
+    case 'delete': return pedirBorrado_(admin, body.id);
+    case 'approvedel': return aprobarBorrado_(admin, body.id);
+    case 'canceldel': return marcarBorrado_(body.id, '');
     case 'logout': return logout_(body.token);
   }
 }
@@ -154,6 +157,7 @@ function readAll_() {
     pagada: r.pagada === true || String(r.pagada).toUpperCase() === 'TRUE',
     fechaPago: r.fechaPago ? toIso_(r.fechaPago) : null,
     cobradaPor: String(r.cobradaPor || ''),
+    borradoPor: String(r.borradoPor || ''),
   }));
   const responsables = rows_(ss.getSheetByName(SHEET_ADMINS)).map(r => ({
     nombre: String(r.nombre),
@@ -223,7 +227,7 @@ function addMulta_(admin, b) {
   sheet.appendRow([
     id, fecha, String(b.jugadorId), texto_(b.jugador, 40), texto_(b.infraccionId || 'otra', 40),
     texto_(b.concepto, 160), importe, texto_(b.nota, 300),
-    admin.nombre, false, '', '',
+    admin.nombre, false, '', '', '',
   ]);
   return { id };
 }
@@ -238,11 +242,39 @@ function setPaid_(admin, id, paid) {
   return {};
 }
 
-function deleteMulta_(admin, id) {
+/** Columna borradoPor: las hojas creadas antes no la tienen. */
+function columnaBorrado_(sheet) {
+  const col = MULTAS_HEADERS.indexOf('borradoPor') + 1;
+  const cab = sheet.getRange(1, col, 1, 1);
+  if (cab.getValues()[0][0] !== 'borradoPor') cab.setValues([['borradoPor']]).setFontWeight('bold');
+  return col;
+}
+
+function leerBorrado_(id) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MULTAS);
   const row = findRowIndex_(sheet, 'id', String(id));
   if (row < 0) throw new Error('Multa no encontrada');
-  sheet.deleteRow(row);
+  const col = columnaBorrado_(sheet);
+  return { sheet, row, col, pedidoPor: String(sheet.getRange(row, col, 1, 1).getValues()[0][0] || '') };
+}
+
+function marcarBorrado_(id, nombre) {
+  const b = leerBorrado_(id);
+  b.sheet.getRange(b.row, b.col, 1, 1).setValues([[nombre]]);
+  return {};
+}
+
+function pedirBorrado_(admin, id) {
+  const b = leerBorrado_(id);
+  if (b.pedidoPor) throw new Error(b.pedidoPor + ' ya ha pedido borrarla');
+  return marcarBorrado_(id, admin.nombre);
+}
+
+function aprobarBorrado_(admin, id) {
+  const b = leerBorrado_(id);
+  if (!b.pedidoPor) throw new Error('Nadie ha pedido borrar esta multa');
+  if (b.pedidoPor === admin.nombre) throw new Error('Tiene que aprobarlo otro capitán o el entrenador');
+  b.sheet.deleteRow(b.row);
   return {};
 }
 

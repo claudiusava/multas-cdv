@@ -64,6 +64,11 @@ export class Store {
   );
   readonly bote = computed(() => calcularBote(this.multas(), this.ahora()));
   readonly ranking = computed(() => calcularRanking(this.multas(), this.ahora()));
+  /** Borrados que ha pedido otro responsable y este móvil puede aprobar. */
+  readonly borradosPorAprobar = computed(() => {
+    const yo = this.admin()?.nombre;
+    return yo ? this.multas().filter((m) => m.borradoPor && m.borradoPor !== yo).length : 0;
+  });
 
   private avisoTimer: ReturnType<typeof setTimeout> | undefined;
   /** Escrituras en vuelo y versión local: evita que una lectura antigua pise un cambio recién hecho. */
@@ -204,12 +209,34 @@ export class Store {
     );
   }
 
-  borrar(m: Multa): Promise<boolean> {
+  /** Borrar necesita a dos: uno lo pide... */
+  pedirBorrado(m: Multa): Promise<boolean> {
+    const token = this.token();
+    const nombre = this.admin()!.nombre;
+    return this.escribir(
+      (l) => l.map((x) => (x.id === m.id ? { ...x, borradoPor: nombre } : x)),
+      () => this.api.enviar({ action: 'delete', token, id: m.id }),
+      'No se pudo pedir el borrado',
+    );
+  }
+
+  /** ...y otro responsable distinto lo aprueba. */
+  aprobarBorrado(m: Multa): Promise<boolean> {
     const token = this.token();
     return this.escribir(
       (l) => l.filter((x) => x.id !== m.id),
-      () => this.api.enviar({ action: 'delete', token, id: m.id }),
+      () => this.api.enviar({ action: 'approvedel', token, id: m.id }),
       'No se pudo borrar',
+    );
+  }
+
+  /** Quien lo pidió lo cancela, u otro lo rechaza: la multa se queda. */
+  cancelarBorrado(m: Multa): Promise<boolean> {
+    const token = this.token();
+    return this.escribir(
+      (l) => l.map((x) => (x.id === m.id ? { ...x, borradoPor: '' } : x)),
+      () => this.api.enviar({ action: 'canceldel', token, id: m.id }),
+      'No se pudo cancelar',
     );
   }
 
