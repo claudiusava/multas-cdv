@@ -64,8 +64,8 @@ export const INFRACCIONES: Infraccion[] = [
   { id: 'par-tarde', ambito: 'Partidos', concepto: 'Llegar tarde al partido', importe: 2 },
   { id: 'par-tarde-sin-avisar', ambito: 'Partidos', concepto: 'Llegar tarde al partido sin avisar', importe: 4, extra: 'Si supera los 10′: posibilidad de no jugar y salir de convocatoria' },
   { id: 'par-no-acudir', ambito: 'Partidos', concepto: 'No acudir al partido y no avisar (convocado)', importe: 5, extra: 'Fuera de convocatoria el siguiente partido' },
-  { id: 'par-amarilla', ambito: 'Partidos', concepto: 'Tarjeta amarilla por hablar', importe: 5 },
-  { id: 'par-roja', ambito: 'Partidos', concepto: 'Tarjeta roja por hablar', importe: 15 },
+  { id: 'par-amarilla', ambito: 'Partidos', concepto: 'Tarjeta amarilla por protestas', importe: 5 },
+  { id: 'par-roja', ambito: 'Partidos', concepto: 'Tarjeta roja por protestas', importe: 15 },
   { id: 'par-respeto', ambito: 'Otros aspectos', concepto: 'Faltar al respeto a compañeros, rivales, CT, árbitros, grada o mantenimiento', importe: 10, extra: 'Sanción disciplinaria a decidir por el CT' },
   { id: 'otra', ambito: 'Otros aspectos', concepto: 'Otra sanción', importe: 0, libre: true },
 ];

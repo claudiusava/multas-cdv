@@ -111,9 +111,9 @@ function demoDatos(): Datos {
   });
   const datos: Datos = {
     multas: [
-      mk(1, 'diaz-nunez-rodrigo', 'par-roja', 'Tarjeta roja por hablar', 15, 3),
+      mk(1, 'diaz-nunez-rodrigo', 'par-roja', 'Tarjeta roja por protestas', 15, 3),
       mk(2, 'garcia-farraces-jorge', 'ent-tarde-sin-avisar', 'Llegar tarde al entreno sin avisar', 4, 12),
-      mk(3, 'pasero-ignacio', 'par-amarilla', 'Tarjeta amarilla por hablar', 5, 1),
+      mk(3, 'pasero-ignacio', 'par-amarilla', 'Tarjeta amarilla por protestas', 5, 1),
       mk(4, 'garcia-farraces-jorge', 'ent-chanclas', 'Acudir en chanclas o zuecos', 2, 20, true),
       mk(5, 'reneo-jose-manuel', 'ent-tarde', 'Llegar tarde al entreno', 2, 6, true),
       mk(6, 'el-moussaqui-samir', 'par-vestimenta', 'No acudir con la vestimenta estipulada (×2 prendas)', 4, 0.2),
