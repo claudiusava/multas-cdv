@@ -25,7 +25,7 @@ const MULTAS_HEADERS = [
 ];
 const ADMINS_HEADERS = ['nombre', 'rol', 'tokenHash', 'fechaAlta', 'dispositivo'];
 const ZONA = 'Europe/Madrid';
-const CACHE_KEY = 'datos-v3';
+const CACHE_KEY = 'datos-v4';
 const CACHE_SEG = 300; // ediciones manuales en la hoja se ven en ≤ 5 min
 
 /** Ejecútalo una vez desde el editor para crear las pestañas y el código. */
@@ -153,7 +153,7 @@ function readAll_() {
     concepto: String(r.concepto),
     importe: Number(r.importe) || 0,
     nota: String(r.nota || ''),
-    creadaPor: String(r.creadaPor || ''),
+    // creadaPor se guarda en la hoja pero no se publica: no se enseña quién puso la multa.
     pagada: r.pagada === true || String(r.pagada).toUpperCase() === 'TRUE',
     fechaPago: r.fechaPago ? toIso_(r.fechaPago) : null,
     cobradaPor: String(r.cobradaPor || ''),

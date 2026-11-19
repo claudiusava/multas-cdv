@@ -8,7 +8,7 @@ export interface Multa {
   concepto: string;
   importe: number;
   nota: string;
-  creadaPor: string;
+  creadaPor?: string;
   pagada: boolean;
   fechaPago: string | null;
   cobradaPor: string;

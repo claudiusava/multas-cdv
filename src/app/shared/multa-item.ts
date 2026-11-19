@@ -26,7 +26,7 @@ import { Avatar } from './avatar';
           <div class="nota">“{{ m.nota }}”</div>
         }
         <div class="meta">
-          <span>{{ fecha(m.fecha) }} · por {{ m.creadaPor }}</span>
+          <span>{{ fecha(m.fecha) }}</span>
           @if (guardando()) { <span class="guardando">· guardando…</span> }
         </div>
         <div class="estado">
