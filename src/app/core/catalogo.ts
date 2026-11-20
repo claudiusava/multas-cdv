@@ -56,7 +56,7 @@ export const JUGADORES_ORDENADOS: Jugador[] = [...JUGADORES].sort(
 
 /** Régimen interno 2026/27. */
 export const INFRACCIONES: Infraccion[] = [
-  { id: 'ent-chanclas', ambito: 'Entrenamientos', concepto: 'Acudir en chanclas o zuecos', importe: 2 },
+  { id: 'ent-chanclas', ambito: 'Entrenamientos', concepto: 'Acudir en chanclas, zuecos o vestimenta no estipulada', importe: 2, porUnidad: 'prenda' },
   { id: 'ent-tarde', ambito: 'Entrenamientos', concepto: 'Llegar tarde al entreno', importe: 2 },
   { id: 'ent-no-ir', ambito: 'Entrenamientos', concepto: 'No ir a entrenar (aunque la causa sea justificada)', importe: 2 },
   { id: 'ent-tarde-sin-avisar', ambito: 'Entrenamientos', concepto: 'Llegar tarde al entreno sin avisar', importe: 4 },
