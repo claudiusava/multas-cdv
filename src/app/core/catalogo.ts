@@ -58,7 +58,9 @@ export const JUGADORES_ORDENADOS: Jugador[] = [...JUGADORES].sort(
 export const INFRACCIONES: Infraccion[] = [
   { id: 'ent-chanclas', ambito: 'Entrenamientos', concepto: 'Acudir en chanclas o zuecos', importe: 2 },
   { id: 'ent-tarde', ambito: 'Entrenamientos', concepto: 'Llegar tarde al entreno', importe: 2 },
+  { id: 'ent-no-ir', ambito: 'Entrenamientos', concepto: 'No ir a entrenar (aunque la causa sea justificada)', importe: 2 },
   { id: 'ent-tarde-sin-avisar', ambito: 'Entrenamientos', concepto: 'Llegar tarde al entreno sin avisar', importe: 4 },
+  { id: 'ent-aviso-tarde', ambito: 'Entrenamientos', concepto: 'No avisar de no asistencia al entreno con menos de 2 h de antelación', importe: 4 },
   { id: 'ent-no-avisar', ambito: 'Entrenamientos', concepto: 'No venir al entreno y no avisar', importe: 5, extra: 'Motivo de no convocatoria' },
   { id: 'par-vestimenta', ambito: 'Partidos', concepto: 'No acudir con la vestimenta estipulada', importe: 2, porUnidad: 'prenda' },
   { id: 'par-tarde', ambito: 'Partidos', concepto: 'Llegar tarde al partido', importe: 2 },
