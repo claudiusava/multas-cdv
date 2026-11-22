@@ -1,6 +1,24 @@
 <!doctype html>
 <html lang="es">
 <head>
+  <!-- El equipo ya usa Multaka: esta app lleva a la misma página allí (los responsables entran con su acceso de siempre). -->
+  <script>
+    (function () {
+      var EQUIPO = 'kcLtpfQsdHG1Z84rtzi6';
+      var r = location.hash.replace(/^#\/?/, '').split(/[?/]/)[0];
+      if (['multas', 'nueva', 'reglamento'].indexOf(r) < 0) r = '';
+      var t = '';
+      try {
+        var a = JSON.parse(localStorage.getItem('cdv.admin') || 'null');
+        if (a && typeof a.token === 'string') t = a.token;
+      } catch (e) {}
+      location.replace(
+        t
+          ? 'https://multaka.app/cdv?e=' + EQUIPO + '#t=' + encodeURIComponent(t) + '&r=' + r
+          : 'https://multaka.app/e/' + EQUIPO + (r ? '/' + r : '')
+      );
+    })();
+  </script>
   <meta charset="utf-8">
   <title>Multas CDV</title>
   <base href="/">
